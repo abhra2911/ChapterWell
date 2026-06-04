@@ -380,7 +380,7 @@ a:hover { text-decoration: underline; }
 }
 
 .fact-value {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Nunito', serif;
     font-size: 2rem;
     color: var(--clr-navy-mid);
     margin: 0;
@@ -714,7 +714,7 @@ a:hover { text-decoration: underline; }
 }
 
 .portal-page .card-value.large {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Nunito', serif;
     font-size: 1.8rem;
     font-weight: 700;
 }
