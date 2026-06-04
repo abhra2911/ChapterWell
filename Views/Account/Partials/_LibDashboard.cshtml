@@ -1,0 +1,208 @@
+@model Lib_Mgmt.Models.LibrarianDashboardViewModel
+@using Newtonsoft.Json
+
+<section id="lib-dashboard" class="portal-section active">
+    <h2>Librarian's Dashboard</h2>
+    <p class="subtitle">Overview of the current status of the library</p>
+    <hr />
+
+    <div class="card-grid">
+        <div class="card">
+            <p class="card-label">Total Members</p>
+            <p class="card-value large">@Model.TotalMembers</p>
+        </div>
+        <div class="card">
+            <p class="card-label">Total Titles</p>
+            <p class="card-value large">@Model.TotalTitles</p>
+        </div>
+        <div class="card">
+            <p class="card-label">Copies Available</p>
+            <p class="card-value large text-success">@Model.TotalCopiesAvailable</p>
+        </div>
+        <div class="card">
+            <p class="card-label">Books Borrowed</p>
+            <p class="card-value large">@Model.BooksBorrowed</p>
+        </div>
+        <div class="card">
+            <p class="card-label">Overdue</p>
+            <p class="card-value large text-danger">@Model.OverdueCount</p>
+        </div>
+        <div class="card">
+            <p class="card-label">New Members This Month</p>
+            <p class="card-value large">@Model.NewMembersThisMonth</p>
+        </div>
+        <div class="card">
+            <p class="card-label">Total Fines Due</p>
+            <p class="card-value large text-warning">&#8377;@Model.TotalFinesDue</p>
+        </div>
+    </div>
+
+    <div class="chart-grid">
+        <div class="chart-card">
+            <h3>Book Copy Status</h3>
+            <canvas id="bookStatusChart" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Borrowings — Last 6 Months</h3>
+            <canvas id="borrowingsChart" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Fines Collected — Last 6 Months (&#8377;)</h3>
+            <canvas id="finesChart" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Top 5 Most Borrowed Books</h3>
+            <canvas id="topBooksChart" height="220"></canvas>
+        </div>
+    </div>
+
+    <h3>Overdue Borrowings</h3>
+    @if (!Model.OverdueBorrowings.Any())
+    {
+        <p class="subtitle">No overdue borrowings. All good!</p>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Member</th>
+                        <th>Member ID</th>
+                        <th>Book</th>
+                        <th>Borrowed On</th>
+                        <th>Due Date</th>
+                        <th>Days Overdue</th>
+                        <th>Fine</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model.OverdueBorrowings)
+                    {
+                        <tr>
+                            <td>@b.MemberName</td>
+                            <td>@b.MemberId</td>
+                            <td>@b.BookTitle</td>
+                            <td>@b.BorrowedOn.ToString("d MMM yyyy")</td>
+                            <td>@b.DueDate.ToString("d MMM yyyy")</td>
+                            <td class="text-danger">@b.DaysOverdue days</td>
+                            <td class="text-warning">&#8377;@b.Fine</td>
+                            <td><button type="button">Mark Returned</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    const bookStatus = {
+        available: @Model.CopiesAvailable,
+        borrowed:  @Model.CopiesBorrowed,
+        overdue:   @Model.CopiesOverdue,
+        damaged:   @Model.CopiesDamaged
+    };
+
+    const monthlyBorrowings = {
+        labels: @Html.Raw(JsonConvert.SerializeObject(Model.BorrowingsPerMonth.Select(x => x.Month))),
+        data:   @Html.Raw(JsonConvert.SerializeObject(Model.BorrowingsPerMonth.Select(x => x.Count)))
+    };
+
+    const monthlyFines = {
+        labels: @Html.Raw(JsonConvert.SerializeObject(Model.FinesPerMonth.Select(x => x.Month))),
+        data:   @Html.Raw(JsonConvert.SerializeObject(Model.FinesPerMonth.Select(x => x.Amount)))
+    };
+
+    const topBooks = {
+        labels: @Html.Raw(JsonConvert.SerializeObject(Model.TopBorrowedBooks.Select(x => x.Title))),
+        data:   @Html.Raw(JsonConvert.SerializeObject(Model.TopBorrowedBooks.Select(x => x.Count)))
+    };
+
+    new Chart(document.getElementById('bookStatusChart'), {
+        type: 'pie',
+        data: {
+            labels: ['Available', 'Borrowed', 'Overdue', 'Damaged'],
+            datasets: [{
+                data: [bookStatus.available, bookStatus.borrowed, bookStatus.overdue, bookStatus.damaged],
+                backgroundColor: ['#2a7a2a', '#4a6cf7', '#c0392b', '#b7770d'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            animation: { animateRotate: true, duration: 900 },
+            plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } }
+        }
+    });
+
+    new Chart(document.getElementById('borrowingsChart'), {
+        type: 'bar',
+        data: {
+            labels: monthlyBorrowings.labels,
+            datasets: [{
+                label: 'Books Borrowed',
+                data: monthlyBorrowings.data,
+                backgroundColor: '#4a6cf7',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            animation: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { font: { size: 11 } } },
+                x: { ticks: { font: { size: 11 } } }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('finesChart'), {
+        type: 'line',
+        data: {
+            labels: monthlyFines.labels,
+            datasets: [{
+                label: 'Fines (₹)',
+                data: monthlyFines.data,
+                borderColor: '#b7770d',
+                backgroundColor: 'rgba(183,119,13,0.1)',
+                borderWidth: 2,
+                pointRadius: 4,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            animation: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { font: { size: 11 } } },
+                x: { ticks: { font: { size: 11 } } }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('topBooksChart'), {
+        type: 'bar',
+        data: {
+            labels: topBooks.labels,
+            datasets: [{
+                label: 'Times Borrowed',
+                data: topBooks.data,
+                backgroundColor: '#2a7a2a',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            animation: false,
+            indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, ticks: { font: { size: 11 } } },
+                y: { ticks: { font: { size: 11 } } }
+            }
+        }
+    });
+</script>

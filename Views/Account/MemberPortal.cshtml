@@ -1,0 +1,22 @@
+@{
+    ViewData["Title"] = "Member Portal";
+    Layout = "_PortalLayout";
+    var active = ViewData["ActiveSection"] as string ?? "account";
+}
+
+<partial name="Partials/_MemberNav" />
+
+<div class="portal-content">
+    @switch (active)
+    {
+        case "books":
+            <partial name="Partials/_MemBooks" />
+            break;
+        case "borrowing":
+            <partial name="Partials/_MemBorrowing" />
+            break;
+        default:
+            <partial name="Partials/_MemAccount" />
+            break;
+    }
+</div>

@@ -1,0 +1,100 @@
+@{
+    ViewData["Title"] = "Home";
+}
+
+<!-- Hero -->
+<div class="home-hero">
+    <div class="home-hero-content">
+        <h1>Welcome to The Central Library</h1>
+        <p class="hero-sub">A sanctuary of knowledge — open to all members of the community, every day of the week.</p>
+        <a asp-controller="Account" asp-action="Login" class="hero-cta">Login &rarr;</a>
+    </div>
+</div>
+
+<!-- Facts -->
+<h2 class="home-section-title">Our Library at a Glance</h2>
+<p class="home-section-subtitle">By the numbers — updated for the current academic year.</p>
+
+<div class="home-facts">
+    <div class="fact-card">
+        <div class="fact-icon">📚</div>
+        <p class="fact-value">12,400+</p>
+        <p class="fact-label">Books in Collection</p>
+        <p class="fact-desc">Spanning fiction, science, engineering, history, and over 60 other subject areas.</p>
+    </div>
+    <div class="fact-card">
+        <div class="fact-icon">🎓</div>
+        <p class="fact-value">3,200</p>
+        <p class="fact-label">Registered Members</p>
+        <p class="fact-desc">Students, faculty, and community readers actively borrowing from the library.</p>
+    </div>
+    <div class="fact-card">
+        <div class="fact-icon">🔄</div>
+        <p class="fact-value">840</p>
+        <p class="fact-label">Loans This Month</p>
+        <p class="fact-desc">Books checked out in the past 30 days, with a 14-day standard lending period.</p>
+    </div>
+    <div class="fact-card">
+        <div class="fact-icon">🏛</div>
+        <p class="fact-value">Since 1952</p>
+        <p class="fact-label">Serving the Community</p>
+        <p class="fact-desc">Over seven decades of preserving knowledge and fostering a culture of reading.</p>
+    </div>
+</div>
+
+<!-- Gallery -->
+<h2 class="home-section-title">Inside the Library</h2>
+<p class="home-section-subtitle">A space built for quiet study, discovery, and inspiration.</p>
+
+<div class="home-gallery">
+    <div class="gallery-img span-col">
+        <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=900&q=80"
+             alt="Grand library reading hall with tall bookshelves" loading="lazy" />
+    </div>
+    <div class="gallery-img">
+        <img src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=600&q=80"
+             alt="Library bookshelves close-up" loading="lazy" />
+    </div>
+    <div class="gallery-img">
+        <img src="https://images.unsplash.com/photo-1568667256531-68d04c12ccac?w=600&q=80"
+             alt="Student studying at a library desk" loading="lazy" />
+    </div>
+    <div class="gallery-img">
+        <img src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=600&q=80"
+             alt="Open books on a table" loading="lazy" />
+    </div>
+    <div class="gallery-img">
+        <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&q=80"
+             alt="Stack of colourful books" loading="lazy" />
+    </div>
+</div>
+
+<!-- About + Hours -->
+<div class="home-about-grid">
+    <div class="home-info-card">
+        <h3>Opening Hours</h3>
+        <table class="hours-table">
+            <tr><td>Monday &ndash; Friday</td><td>8:00 AM &ndash; 8:00 PM</td></tr>
+            <tr><td>Saturday</td><td>9:00 AM &ndash; 6:00 PM</td></tr>
+            <tr><td>Sunday</td><td>10:00 AM &ndash; 4:00 PM</td></tr>
+            <tr><td>Public Holidays</td><td>Closed</td></tr>
+        </table>
+    </div>
+    <div class="home-info-card">
+        <h3>About the Library</h3>
+        <p>
+            The Central Library has served students, researchers, and readers since 1952. Our collection
+            spans print books, periodicals, reference works, and digital resources across all major
+            disciplines.
+        </p>
+        <p>
+            Members may borrow up to <strong>3 books</strong> at a time for a period of <strong>14 days</strong>.
+            A fine of &#8377;2 per day is charged on overdue returns. Lost books are charged at the current
+            replacement cost.
+        </p>
+        <p>
+            New membership is open to all enrolled students and faculty. Community memberships are
+            available on request.
+        </p>
+    </div>
+</div>

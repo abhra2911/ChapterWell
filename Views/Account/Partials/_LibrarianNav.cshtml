@@ -1,0 +1,19 @@
+@{
+    var active = ViewData["ActiveSection"] as string ?? "lib-dashboard";
+}
+<nav class="portal-nav">
+    <span class="brand">The Central Library</span>
+    <a asp-controller="Account" asp-action="LibrarianDashboard"
+       class="@(active == "lib-dashboard" ? "active" : null)">Dashboard</a>
+    <a asp-controller="Account" asp-action="LibrarianAccount"
+       class="@(active == "account" ? "active" : null)">Account</a>
+    <a asp-controller="Account" asp-action="LibrarianBooks"
+       class="@(active == "books" ? "active" : null)">Books</a>
+    <a asp-controller="Account" asp-action="LibrarianMembers"
+       class="@(active == "members" ? "active" : null)">Members</a>
+    <button class="portal-dark-toggle theme-toggle-btn" aria-label="Toggle dark mode">
+        <span class="toggle-icon">🌙</span>
+        <span class="toggle-text">Dark</span>
+    </button>
+    <a asp-controller="Account" asp-action="Logout" class="nav-logout">Logout</a>
+</nav>

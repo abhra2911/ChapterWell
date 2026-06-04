@@ -1,0 +1,26 @@
+@using Lib_Mgmt.Models
+@{
+    ViewData["Title"] = "Librarian Portal";
+    Layout = "_PortalLayout";
+    var active = ViewData["ActiveSection"] as string ?? "lib-dashboard";
+}
+
+<partial name="Partials/_LibrarianNav" />
+
+<div class="portal-content">
+    @switch (active)
+    {
+        case "account":
+            <partial name="Partials/_LibAccount" />
+            break;
+        case "books":
+            <partial name="Partials/_LibBooks" />
+            break;
+        case "members":
+            <partial name="Partials/_LibMembers" />
+            break;
+        default:
+            <partial name="Partials/_LibDashboard" model="@(Model as LibrarianDashboardViewModel)" />
+            break;
+    }
+</div>
