@@ -1,14 +1,14 @@
 @{
-    var active = ViewData["ActiveSection"] as string ?? "account";
+    var active = ViewData["ActiveSection"] as string ?? "dashboard";
 }
 <nav class="portal-nav">
     <span class="brand">The Central Library</span>
-    <a asp-controller="Account" asp-action="MemberAccount"
-       class="@(active == "account" ? "active" : null)">Account</a>
+    <a asp-controller="Account" asp-action="MemberDashboard"
+       class="@(active == "dashboard" ? "active" : null)">Dashboard</a>
     <a asp-controller="Account" asp-action="MemberBooks"
        class="@(active == "books" ? "active" : null)">Books</a>
-    <a asp-controller="Account" asp-action="MemberBorrowing"
-       class="@(active == "borrowing" ? "active" : null)">Borrowing</a>
+    <a asp-controller="Account" asp-action="MemberAccount"
+       class="@(active == "account" ? "active" : null)">Account</a>
     <button class="portal-dark-toggle theme-toggle-btn" aria-label="Toggle dark mode">
         <span class="toggle-icon">🌙</span>
         <span class="toggle-text">Dark</span>

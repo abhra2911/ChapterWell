@@ -1,0 +1,176 @@
+@model Lib_Mgmt.Models.MemberDashboardViewModel
+
+<section id="dashboard" class="portal-section active">
+    <h2>Welcome back, @Model.MemberName</h2>
+    <p class="subtitle">Discover the library's most-borrowed titles and keep track of your loans.</p>
+    <hr />
+
+    <div class="book-slider">
+        <div class="book-slider-head">
+            <h3>Top 10 Most Borrowed</h3>
+            <div class="slider-controls">
+                <button type="button" id="sliderPrev" aria-label="Previous">&#8249;</button>
+                <button type="button" id="sliderNext" aria-label="Next">&#8250;</button>
+            </div>
+        </div>
+
+        <div class="book-slider-viewport">
+            <div class="book-slider-track" id="bookSliderTrack">
+                @{ var rank = 0; }
+                @foreach (var book in Model.TopBooks)
+                {
+                    rank++;
+                    <div class="book-card" data-isbn="@book.Isbn">
+                        <div class="book-cover">
+                            <span class="book-rank">@rank</span>
+                            <div class="book-cover-fallback"><span>@book.Title</span></div>
+                            <img class="book-cover-img" alt="@book.Title cover" />
+                        </div>
+                        <div class="book-meta">
+                            <p class="book-title">@book.Title</p>
+                            <p class="book-author">@book.Author</p>
+                            <div class="book-foot">
+                                <span class="book-borrows">@book.BorrowCount borrows</span>
+                                @if (book.Available)
+                                {
+                                    <span class="book-avail in">Available</span>
+                                }
+                                else
+                                {
+                                    <span class="book-avail out">Out</span>
+                                }
+                            </div>
+                            <button type="button" class="book-borrow-btn" @(book.Available ? null : "disabled")>Borrow</button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <h3>Your Borrowing Overview</h3>
+    <div class="card-grid">
+        <div class="card">
+            <p class="card-label">Currently borrowed</p>
+            <p class="card-value large">@Model.CurrentlyBorrowed</p>
+        </div>
+        <div class="card">
+            <p class="card-label">Overdue</p>
+            <p class="card-value large text-danger">@Model.OverdueCount</p>
+        </div>
+        <div class="card">
+            <p class="card-label">Fine due</p>
+            <p class="card-value large text-warning">&#8377;@Model.FineDue</p>
+        </div>
+    </div>
+
+    <h3>Active Loans</h3>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Borrowed on</th>
+                    <th>Due date</th>
+                    <th>Status</th>
+                    <th>Fine</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.ActiveLoans.Count == 0)
+                {
+                    <tr><td colspan="5" class="text-center">No active loans.</td></tr>
+                }
+                else
+                {
+                    @foreach (var loan in Model.ActiveLoans)
+                    {
+                        <tr>
+                            <td>@loan.Title</td>
+                            <td>@loan.BorrowedOn.ToString("dd MMM yyyy")</td>
+                            <td>@loan.DueDate.ToString("dd MMM yyyy")</td>
+                            @if (loan.Status == "Overdue")
+                            {
+                                <td class="text-danger">Overdue</td>
+                                <td class="text-warning">&#8377;@loan.Fine</td>
+                            }
+                            else
+                            {
+                                <td class="text-success">On time</td>
+                                <td>&#8377;@loan.Fine</td>
+                            }
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>
+    $(function () {
+        // Attach a cover image to each book card from its ISBN.
+        // Open Library returns 404 with default=false when no cover exists,
+        // which triggers the error handler and reveals the title-tile fallback.
+        $('.book-card').each(function () {
+            var $card = $(this);
+            var isbn  = $card.attr('data-isbn');
+            var $img  = $card.find('.book-cover-img');
+
+            if (!isbn) {
+                $card.addClass('no-cover');
+                return;
+            }
+
+            $img.on('error', function () {
+                $card.addClass('no-cover');
+            });
+            $img.attr('src', 'https://covers.openlibrary.org/b/isbn/' + isbn + '-M.jpg?default=false');
+        });
+
+        // Slider: show N cards per page, advance one page per click.
+        var $track = $('#bookSliderTrack');
+        var $cards = $track.children('.book-card');
+        var $prev  = $('#sliderPrev');
+        var $next  = $('#sliderNext');
+        var index  = 0;
+
+        function visibleCount() {
+            var w = $(window).width();
+            if (w < 560)  return 1;
+            if (w < 820)  return 2;
+            if (w < 1080) return 3;
+            return 4;
+        }
+
+        function step() {
+            // Distance between two cards = card width + gap. position() is
+            // relative to the track and unaffected by the track's transform.
+            if ($cards.length < 2) return $cards.outerWidth(true);
+            return $cards.eq(1).position().left - $cards.eq(0).position().left;
+        }
+
+        function update() {
+            var vc       = visibleCount();
+            var maxIndex = Math.max(0, $cards.length - vc);
+            if (index > maxIndex) index = maxIndex;
+            if (index < 0) index = 0;
+
+            $track.css('transform', 'translateX(' + (-index * step()) + 'px)');
+            $prev.prop('disabled', index === 0);
+            $next.prop('disabled', index >= maxIndex);
+        }
+
+        $next.on('click', function () { index += visibleCount(); update(); });
+        $prev.on('click', function () { index -= visibleCount(); update(); });
+
+        var resizeTimer;
+        $(window).on('resize', function () {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(update, 120);
+        });
+
+        update();
+    });
+</script>

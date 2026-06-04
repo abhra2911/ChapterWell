@@ -1,7 +1,8 @@
+@using Lib_Mgmt.Models
 @{
     ViewData["Title"] = "Member Portal";
     Layout = "_PortalLayout";
-    var active = ViewData["ActiveSection"] as string ?? "account";
+    var active = ViewData["ActiveSection"] as string ?? "dashboard";
 }
 
 <partial name="Partials/_MemberNav" />
@@ -12,11 +13,11 @@
         case "books":
             <partial name="Partials/_MemBooks" />
             break;
-        case "borrowing":
-            <partial name="Partials/_MemBorrowing" />
+        case "account":
+            <partial name="Partials/_MemAccount" />
             break;
         default:
-            <partial name="Partials/_MemAccount" />
+            <partial name="Partials/_MemDashboard" model="@(Model as MemberDashboardViewModel)" />
             break;
     }
 </div>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Lib_Mgmt.Models;
 
@@ -24,7 +25,7 @@ namespace Lib_Mgmt.Controllers
 
             if (model.Username == "mem" && model.Password == "123")
             {
-                return RedirectToAction(nameof(MemberAccount));
+                return RedirectToAction(nameof(MemberDashboard));
             }
 
             ViewBag.Error = "Invalid username or password.";
@@ -141,6 +142,53 @@ namespace Lib_Mgmt.Controllers
         // Member portal — one action per tab.
         // ---------------------------------------------------------------
 
+        // GET: /Account/MemberDashboard
+        public IActionResult MemberDashboard()
+        {
+            ViewData["ActiveSection"] = "dashboard";
+
+            var loans = new List<MemberLoan>
+            {
+                new MemberLoan
+                {
+                    Title      = "Clean Code",
+                    BorrowedOn = new DateTime(2026, 5, 10),
+                    DueDate    = new DateTime(2026, 5, 24)
+                },
+                new MemberLoan
+                {
+                    Title      = "Operating System Concepts",
+                    BorrowedOn = new DateTime(2026, 5, 22),
+                    DueDate    = new DateTime(2026, 6, 5)
+                }
+            };
+
+            var model = new MemberDashboardViewModel
+            {
+                MemberName        = "User",
+                ActiveLoans       = loans,
+                CurrentlyBorrowed = loans.Count,
+                OverdueCount      = loans.Count(l => l.DaysOverdue > 0),
+                FineDue           = loans.Sum(l => l.Fine),
+
+                TopBooks = new List<TopBook>
+                {
+                    new TopBook { Title = "Clean Code",                             Author = "Robert C. Martin",      Isbn = "9780132350884", BorrowCount = 142, Available = true  },
+                    new TopBook { Title = "Introduction to Algorithms",             Author = "Cormen et al.",         Isbn = "9780262033848", BorrowCount = 128, Available = true  },
+                    new TopBook { Title = "Computer Networks",                      Author = "Andrew S. Tanenbaum",   Isbn = "9780132126953", BorrowCount = 119, Available = false },
+                    new TopBook { Title = "Operating System Concepts",             Author = "Silberschatz et al.",   Isbn = "9781118063330", BorrowCount = 110, Available = true  },
+                    new TopBook { Title = "The Pragmatic Programmer",              Author = "Hunt & Thomas",         Isbn = "9780201616224", BorrowCount = 103, Available = true  },
+                    new TopBook { Title = "Database System Concepts",              Author = "Silberschatz et al.",   Isbn = "9780073523323", BorrowCount = 97,  Available = false },
+                    new TopBook { Title = "Design Patterns",                       Author = "Gamma et al.",          Isbn = "9780201633610", BorrowCount = 89,  Available = true  },
+                    new TopBook { Title = "The C Programming Language",            Author = "Kernighan & Ritchie",   Isbn = "9780131103627", BorrowCount = 84,  Available = true  },
+                    new TopBook { Title = "Artificial Intelligence",               Author = "Russell & Norvig",      Isbn = "9780136042594", BorrowCount = 76,  Available = true  },
+                    new TopBook { Title = "Structure and Interpretation of Computer Programs", Author = "Abelson & Sussman", Isbn = "9780262011532", BorrowCount = 71, Available = false }
+                }
+            };
+
+            return View("MemberPortal", model);
+        }
+
         // GET: /Account/MemberAccount
         public IActionResult MemberAccount()
         {
@@ -152,13 +200,6 @@ namespace Lib_Mgmt.Controllers
         public IActionResult MemberBooks()
         {
             ViewData["ActiveSection"] = "books";
-            return View("MemberPortal");
-        }
-
-        // GET: /Account/MemberBorrowing
-        public IActionResult MemberBorrowing()
-        {
-            ViewData["ActiveSection"] = "borrowing";
             return View("MemberPortal");
         }
 
