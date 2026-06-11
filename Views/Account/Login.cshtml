@@ -3,18 +3,18 @@
     ViewData["Title"] = "Login";
 }
 
-<div class="login-wrap">
+<div class="login-box">
     <h2>Login</h2>
 
     <form asp-controller="Account" asp-action="Login" method="post">
         <div class="mb-3">
             <label asp-for="Username" class="form-label">Username</label>
-            <input asp-for="Username" class="form-control" autocomplete="username" />
+            <input asp-for="Username" class="form-control" required />
         </div>
 
         <div class="mb-3">
             <label asp-for="Password" class="form-label">Password</label>
-            <input asp-for="Password" type="password" class="form-control" autocomplete="current-password" />
+            <input asp-for="Password" type="password" class="form-control" required />
         </div>
 
         <button type="submit" class="btn btn-primary w-100">Login</button>
@@ -22,6 +22,6 @@
 
     @if (ViewBag.Error != null)
     {
-        <p class="text-danger mt-3" style="font-size:.875rem;">@ViewBag.Error</p>
+        <div class="alert alert-danger mt-3 mb-0">@ViewBag.Error</div>
     }
 </div>

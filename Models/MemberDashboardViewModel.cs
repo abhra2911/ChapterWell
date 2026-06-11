@@ -22,6 +22,10 @@ namespace Lib_Mgmt.Models
         public string Isbn { get; set; } = "";
         public int BorrowCount { get; set; }
         public bool Available { get; set; }
+
+        // Path under wwwroot to the cover image, e.g. "/images/covers/clean-code.jpg".
+        // Leave empty to fall back to the placeholder cover in the view.
+        public string CoverImage { get; set; } = "";
     }
 
     public class MemberLoan
