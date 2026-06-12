@@ -137,15 +137,6 @@ namespace Lib_Mgmt.Controllers
 
         // ---------------------------------------------------------------
         // Librarian — modal POST handlers
-        //
-        // Each handler validates the bound ViewModel, performs the
-        // (currently stubbed) Oracle write, and PRG-redirects back to
-        // the relevant tab with a TempData flash message.
-        //
-        // On validation failure we route the errors back through
-        // TempData["FormError"] so the relevant partial can re-open the
-        // modal and show what went wrong, without needing AJAX.
-        // ---------------------------------------------------------------
 
         // POST: /Account/EditLibrarianProfile
         [HttpPost]
@@ -158,15 +149,6 @@ namespace Lib_Mgmt.Controllers
                 TempData["ReopenModal"] = "editProfileModal";
                 return RedirectToAction(nameof(LibrarianAccount));
             }
-
-            // TODO (Oracle): UPDATE LIBRARIANS
-            //                SET FULL_NAME = :name,
-            //                    EMAIL     = :email,
-            //                    PHONE     = :phone
-            //                WHERE LIBRARIAN_ID = :currentLibrarianId
-            //
-            // Pull :currentLibrarianId from the auth context once
-            // authentication is wired (claims / session).
 
             TempData["Success"] = "Profile updated successfully.";
             return RedirectToAction(nameof(LibrarianAccount));
@@ -184,13 +166,6 @@ namespace Lib_Mgmt.Controllers
                 return RedirectToAction(nameof(LibrarianAccount));
             }
 
-            // TODO (Oracle):
-            //   1. SELECT PASSWORD_HASH FROM LIBRARIANS WHERE LIBRARIAN_ID = :id
-            //   2. Verify model.CurrentPassword against the hash (BCrypt /
-            //      PBKDF2 — pick one and stick with it across both tables).
-            //   3. If mismatch → ModelState.AddModelError(...); return.
-            //   4. UPDATE LIBRARIANS SET PASSWORD_HASH = :newHash WHERE LIBRARIAN_ID = :id
-
             TempData["Success"] = "Password changed successfully.";
             return RedirectToAction(nameof(LibrarianAccount));
         }
@@ -207,15 +182,6 @@ namespace Lib_Mgmt.Controllers
                 return RedirectToAction(nameof(LibrarianBooks));
             }
 
-            // TODO (Oracle): INSERT INTO BOOKS
-            //                  (BOOK_ID, TITLE, AUTHOR, ISBN, GENRE,
-            //                   QUANTITY, PUBLISHED_YEAR, PUBLISHER)
-            //                VALUES
-            //                  (SEQ_BOOK_ID.NEXTVAL, :title, :author, :isbn, :genre,
-            //                   :quantity, :publishedYear, :publisher)
-            //
-            // Use OracleParameter (or EF Core's DbParameter) — never
-            // string-concat user input into the SQL.
 
             TempData["Success"] = $"\"{model.Title}\" added to the catalog.";
             return RedirectToAction(nameof(LibrarianBooks));
@@ -305,12 +271,6 @@ namespace Lib_Mgmt.Controllers
                 return RedirectToAction(nameof(MemberAccount));
             }
 
-            // TODO (Oracle): UPDATE MEMBERS
-            //                SET FULL_NAME = :name,
-            //                    EMAIL     = :email,
-            //                    PHONE     = :phone
-            //                WHERE MEMBER_ID = :currentMemberId
-
             TempData["Success"] = "Profile updated successfully.";
             return RedirectToAction(nameof(MemberAccount));
         }
@@ -326,9 +286,6 @@ namespace Lib_Mgmt.Controllers
                 TempData["ReopenModal"] = "changePasswordModal";
                 return RedirectToAction(nameof(MemberAccount));
             }
-
-            // TODO (Oracle): same flow as ChangeLibrarianPassword,
-            //                but against the MEMBERS table.
 
             TempData["Success"] = "Password changed successfully.";
             return RedirectToAction(nameof(MemberAccount));
