@@ -34,8 +34,6 @@ namespace Lib_Mgmt.Models
         public DateTime DueDate { get; set; }
 
         // Whole days between today and the due date, floored at 0.
-        // (DateOnly is unavailable before .NET 6, so this uses DateTime;
-        //  both dates are date-only/midnight so the day count is exact.)
         public int DaysOverdue => Math.Max(0, (DateTime.Today - DueDate.Date).Days);
         public decimal Fine => DaysOverdue * 5m;
     }

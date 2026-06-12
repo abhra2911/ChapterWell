@@ -34,9 +34,6 @@ namespace Lib_Mgmt.Controllers
 
         // ---------------------------------------------------------------
         // Librarian portal — one action per tab.
-        // Each action renders the shared LibrarianPortal shell, which
-        // shows the nav + the single active section partial.
-        // ---------------------------------------------------------------
 
         // GET: /Account/LibrarianDashboard
         public IActionResult LibrarianDashboard()

@@ -2,10 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Lib_Mgmt.Models
 {
-    // Bound by the AddBook POST action. Fields here match the columns of
-    // the planned BOOKS table in Oracle:
-    //   BOOK_ID (PK, sequence),  TITLE,  AUTHOR,  ISBN,  GENRE,
-    //   QUANTITY,  PUBLISHED_YEAR (nullable),  PUBLISHER (nullable).
+
     public class AddBookViewModel
     {
         [Required(ErrorMessage = "Title is required.")]

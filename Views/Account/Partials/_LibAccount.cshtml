@@ -1,6 +1,4 @@
 @{
-    // TODO (Oracle): replace these hardcoded values with the row fetched
-    // from LIBRARIANS WHERE LIBRARIAN_ID = :currentLibrarianId.
     var libName  = "Librarian";
     var libEmail = "lib@lib.org";
     var libPhone = "";
@@ -66,14 +64,13 @@
     </button>
 </div>
 
-<!-- ============================== -->
+
 <!--   Edit Profile modal           -->
-<!-- ============================== -->
 <div class="modal fade" id="editProfileModal" tabindex="-1"
      aria-labelledby="editProfileModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <form asp-controller="Account" asp-action="EditLibrarianProfile" method="post">
-            @Html.AntiForgeryToken()
+
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
@@ -107,14 +104,13 @@
     </div>
 </div>
 
-<!-- ============================== -->
+
 <!--   Change Password modal        -->
-<!-- ============================== -->
 <div class="modal fade" id="changePasswordModal" tabindex="-1"
      aria-labelledby="changePasswordModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <form asp-controller="Account" asp-action="ChangeLibrarianPassword" method="post">
-            @Html.AntiForgeryToken()
+
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>

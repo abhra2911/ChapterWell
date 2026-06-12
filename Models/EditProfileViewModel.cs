@@ -2,9 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Lib_Mgmt.Models
 {
-    // Bound by EditLibrarianProfile / EditMemberProfile POST actions.
-    // Maps 1:1 to the profile columns we'll persist in Oracle
-    // (LIBRARIANS / MEMBERS tables).
+    // for both librarian and member
     public class EditProfileViewModel
     {
         [Required(ErrorMessage = "Name is required.")]

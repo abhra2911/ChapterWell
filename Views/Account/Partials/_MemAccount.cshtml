@@ -1,6 +1,5 @@
 @{
-    // TODO (Oracle): replace these hardcoded values with the row fetched
-    // from MEMBERS WHERE MEMBER_ID = :currentMemberId.
+
     var memName  = "User";
     var memEmail = "user@lib.org";
     var memPhone = "";
@@ -66,14 +65,13 @@
     </button>
 </div>
 
-<!-- ============================== -->
+
 <!--   Edit Profile modal           -->
-<!-- ============================== -->
 <div class="modal fade" id="editProfileModal" tabindex="-1"
      aria-labelledby="editProfileModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <form asp-controller="Account" asp-action="EditMemberProfile" method="post">
-            @Html.AntiForgeryToken()
+
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
@@ -107,14 +105,13 @@
     </div>
 </div>
 
-<!-- ============================== -->
+
 <!--   Change Password modal        -->
-<!-- ============================== -->
 <div class="modal fade" id="changePasswordModal" tabindex="-1"
      aria-labelledby="changePasswordModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <form asp-controller="Account" asp-action="ChangeMemberPassword" method="post">
-            @Html.AntiForgeryToken()
+
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>

@@ -49,8 +49,7 @@
             </tr>
         </thead>
         <tbody>
-            @* TODO (Oracle): replace this hardcoded block with a foreach over
-               the rows returned from SELECT * FROM BOOKS ORDER BY TITLE.   *@
+
             <tr>
                 <td>Clean Code</td>
                 <td>Robert Martin</td>
@@ -85,14 +84,13 @@
     </table>
 </div>
 
-<!-- ============================== -->
+
 <!--   Add Book modal               -->
-<!-- ============================== -->
 <div class="modal fade" id="addBookModal" tabindex="-1"
      aria-labelledby="addBookModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <form asp-controller="Account" asp-action="AddBook" method="post">
-            @Html.AntiForgeryToken()
+
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addBookModalLabel">Add a New Book</h5>
