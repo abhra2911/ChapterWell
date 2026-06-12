@@ -495,100 +495,97 @@ body {
     overflow: hidden;
 }
 
-.book-cover-img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
+    .book-card .cover {
+        display: block;
+        width: 100%;
+        height: 240px; /* taller than wide */
+        object-fit: cover;
+        background-color: var(--bg-primary);
+    }
 
-.book-card.no-cover .book-cover-img { display: none; }
+    .book-card .body {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+        padding: 10px 12px 14px;
+    }
 
-.book-cover-fallback {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    text-align: center;
-}
+    .book-card .title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        line-height: 1.25;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
 
-.book-cover-fallback span {
-    font-family: 'Playfair Display', serif;
-    color: #f0e6cf;
-    font-size: .95rem;
-    line-height: 1.35;
-}
+    .book-card .author {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
 
-.book-rank {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    z-index: 2;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: var(--clr-gold);
-    color: #0d1b3e;
-    font-size: .72rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, .3);
-}
+    .book-card .avail {
+        margin-top: auto;
+        align-self: flex-start;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 3px 9px;
+        border-radius: 999px;
+        color: #ffffff;
+    }
 
-.book-meta {
-    padding: .7rem .8rem .85rem;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-}
+        .book-card .avail.yes { background-color: var(--brand-success); }
+        .book-card .avail.no  { background-color: var(--brand-danger); }
 
-.book-title {
-    font-weight: 600;
-    font-size: .85rem;
+/* ----- Modals -------------------------------------------------------
+   Bootstrap 5.3 modals default to a white background and dark text,
+   which reads as a glaring white card on top of our dark portal.
+   Re-theme via CSS variables so the modal honours data-theme.       */
+
+.modal-content {
+    background-color: var(--bg-secondary);
     color: var(--text-primary);
-    margin: 0 0 .1rem;
-    line-height: 1.3;
+    border: 1px solid var(--border-color);
 }
 
-.book-author {
-    font-size: .75rem;
-    color: var(--text-muted);
-    margin: 0 0 .5rem;
+.modal-header,
+.modal-footer {
+    border-color: var(--border-color);
 }
 
-.book-foot {
-    margin-top: auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px;
+.modal-title {
+    color: var(--accent-text);
 }
 
-.book-borrows { font-size: .7rem; color: var(--text-muted); }
-
-.book-avail {
-    font-size: .66rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .04em;
+/* Form fields inside modals: light theme already looks fine; in dark
+   mode the default white inputs would clash with the modal surface. */
+[data-theme="dark"] .modal .form-control {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
 }
 
-.book-avail.in  { color: var(--clr-success); }
-.book-avail.out { color: var(--clr-danger); }
+    [data-theme="dark"] .modal .form-control:focus {
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        border-color: var(--accent-text);
+        box-shadow: 0 0 0 0.2rem rgba(158, 197, 255, 0.2);
+    }
 
-.book-borrow-btn {
-    width: 100%;
-    margin: .6rem 0 0;
+    [data-theme="dark"] .modal .form-control::placeholder {
+        color: var(--text-muted);
+    }
+
+[data-theme="dark"] .modal .form-label,
+[data-theme="dark"] .modal .form-text {
+    color: var(--text-secondary);
 }
 
-.book-borrow-btn:disabled {
-    opacity: .4;
-    cursor: default;
-    filter: none;
+/* The X close button is a black SVG by default — invert it in dark
+   mode so it stays visible on the dark header.                      */
+[data-theme="dark"] .modal .btn-close {
+    filter: invert(1) grayscale(1) brightness(2);
 }
