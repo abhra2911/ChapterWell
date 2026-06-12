@@ -1,55 +1,61 @@
 @{
-
     var memName  = "User";
     var memEmail = "user@lib.org";
     var memPhone = "";
     var memId    = "MEM-00102";
 
-    var reopen = TempData["ReopenModal"] as string;
+    var reopen    = TempData["ReopenModal"] as string;
+    var formError = TempData["FormError"] as string;
+    var initial   = string.IsNullOrEmpty(memName) ? "?" : memName.Substring(0, 1).ToUpper();
 }
 
 <h2>Account</h2>
 <p class="subtitle">Your profile information</p>
 <hr />
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<div class="account-hero">
+    <div class="avatar">@initial</div>
+    <div class="who">
+        <div class="name">@memName</div>
+        <div class="role"><i class="bi bi-person-vcard me-1"></i>Member &middot; @memId</div>
     </div>
-}
-@if (TempData["FormError"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        @TempData["FormError"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
+</div>
 
 <div class="row">
     <div class="col-md-6">
         <div class="info-card">
-            <div class="info-label">Name</div>
-            <div class="info-value">@memName</div>
+            <div class="info-icon"><i class="bi bi-person"></i></div>
+            <div>
+                <div class="info-label">Name</div>
+                <div class="info-value">@memName</div>
+            </div>
         </div>
     </div>
     <div class="col-md-6">
         <div class="info-card">
-            <div class="info-label">Email</div>
-            <div class="info-value">@memEmail</div>
+            <div class="info-icon"><i class="bi bi-envelope"></i></div>
+            <div>
+                <div class="info-label">Email</div>
+                <div class="info-value">@memEmail</div>
+            </div>
         </div>
     </div>
     <div class="col-md-6">
         <div class="info-card">
-            <div class="info-label">Member ID</div>
-            <div class="info-value">@memId</div>
+            <div class="info-icon"><i class="bi bi-card-text"></i></div>
+            <div>
+                <div class="info-label">Member ID</div>
+                <div class="info-value">@memId</div>
+            </div>
         </div>
     </div>
     <div class="col-md-6">
         <div class="info-card">
-            <div class="info-label">Status</div>
-            <div class="info-value text-success">Active</div>
+            <div class="info-icon"><i class="bi bi-check2-circle"></i></div>
+            <div>
+                <div class="info-label">Status</div>
+                <div class="info-value text-success">Active</div>
+            </div>
         </div>
     </div>
 </div>
@@ -57,11 +63,11 @@
 <div class="mt-3">
     <button type="button" class="btn btn-primary"
             data-bs-toggle="modal" data-bs-target="#editProfileModal">
-        Edit Profile
+        <i class="bi bi-pencil-square me-1"></i>Edit Profile
     </button>
-    <button type="button" class="btn btn-primary"
+    <button type="button" class="btn btn-secondary"
             data-bs-toggle="modal" data-bs-target="#changePasswordModal">
-        Change Password
+        <i class="bi bi-key me-1"></i>Change Password
     </button>
 </div>
 
@@ -74,30 +80,35 @@
 
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
-                    <button type="button" class="btn-close"
-                            data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="editProfileModalLabel">
+                        <i class="bi bi-pencil-square"></i>Edit Profile
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="modal-error" hidden="@(reopen == "editProfileModal" ? null : "hidden")">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span class="modal-error-text">@(reopen == "editProfileModal" ? formError : null)</span>
+                    </div>
+
                     <div class="mb-3">
                         <label for="mem-edit-name" class="form-label">Name</label>
-                        <input type="text" class="form-control" id="mem-edit-name"
+                        <input type="text" class="form-control" id="mem-edit-name" data-label="Name"
                                name="Name" value="@memName" required maxlength="100" />
                     </div>
                     <div class="mb-3">
                         <label for="mem-edit-email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="mem-edit-email"
+                        <input type="email" class="form-control" id="mem-edit-email" data-label="Email"
                                name="Email" value="@memEmail" required maxlength="150" />
                     </div>
                     <div class="mb-3">
                         <label for="mem-edit-phone" class="form-label">Phone (optional)</label>
-                        <input type="tel" class="form-control" id="mem-edit-phone"
+                        <input type="tel" class="form-control" id="mem-edit-phone" data-label="Phone"
                                name="Phone" value="@memPhone" maxlength="20" />
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary"
-                            data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save Changes</button>
                 </div>
             </div>
@@ -114,31 +125,36 @@
 
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
-                    <button type="button" class="btn-close"
-                            data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="changePasswordModalLabel">
+                        <i class="bi bi-key"></i>Change Password
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="modal-error" hidden="@(reopen == "changePasswordModal" ? null : "hidden")">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span class="modal-error-text">@(reopen == "changePasswordModal" ? formError : null)</span>
+                    </div>
+
                     <div class="mb-3">
                         <label for="mem-curr-pw" class="form-label">Current Password</label>
-                        <input type="password" class="form-control" id="mem-curr-pw"
+                        <input type="password" class="form-control" id="mem-curr-pw" data-label="Current password"
                                name="CurrentPassword" required />
                     </div>
                     <div class="mb-3">
                         <label for="mem-new-pw" class="form-label">New Password</label>
-                        <input type="password" class="form-control" id="mem-new-pw"
-                               name="NewPassword" required minlength="6" />
+                        <input type="password" class="form-control" id="mem-new-pw" data-label="New password"
+                               data-role="new-password" name="NewPassword" required minlength="6" />
                         <div class="form-text">At least 6 characters.</div>
                     </div>
                     <div class="mb-3">
                         <label for="mem-confirm-pw" class="form-label">Confirm New Password</label>
-                        <input type="password" class="form-control" id="mem-confirm-pw"
-                               name="ConfirmPassword" required />
+                        <input type="password" class="form-control" id="mem-confirm-pw" data-label="Confirmation"
+                               data-role="confirm-password" name="ConfirmPassword" required />
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary"
-                            data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary">Update Password</button>
                 </div>
             </div>

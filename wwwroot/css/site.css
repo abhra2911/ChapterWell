@@ -1,49 +1,98 @@
-/* The Central Library — stylesheet */
+/* ============================================================================
+   The Central Library — stylesheet
+   Light/dark themed via CSS custom properties. The .js toggle flips
+   [data-theme] on <html>; an inline head-script applies the saved theme
+   before first paint so navigation between pages never flashes.
+   ========================================================================== */
 
 :root {
-    /* Light mode (default) */
-    --bg-primary: #f4f6f9;
+    /* ---- Surfaces & text (light, default) ---- */
+    --bg-primary: #eef1f6;
     --bg-secondary: #ffffff;
-    --text-primary: #333;
-    --text-secondary: #888;
-    --text-muted: #555;
+    --bg-elevated: #ffffff;
+    --bg-tint: #f4f7fb; /* faint fill for chips / hovers */
+    --text-primary: #2a2f3a;
+    --text-secondary: #6b7280;
+    --text-muted: #8a93a3;
     --text-light: #cbd6e8;
-    --border-color: #dee2e6;
-    --shadow: 0 1px 4px rgba(0,0,0,0.1);
-    --shadow-lg: 0 2px 10px rgba(0,0,0,0.08);
+    --border-color: #e2e7ef;
+    --border-strong: #d3dae6;
+    --shadow: 0 1px 3px rgba(20, 34, 64, 0.08), 0 1px 2px rgba(20, 34, 64, 0.06);
+    --shadow-lg: 0 10px 30px rgba(20, 34, 64, 0.10);
+    --shadow-hover: 0 14px 34px rgba(20, 34, 64, 0.16);
+    /* ---- Brand ---- */
     --brand-primary: #1a3a6c;
+    --brand-primary-2: #2b5ca8; /* lighter navy for gradients */
     --brand-secondary: #f0a500;
+    --brand-secondary-2: #ffc24b;
     --brand-danger: #dc3545;
-    --brand-success: #28a745;
-    /* accent-text: navy in light, readable light blue in dark */
+    --brand-success: #1f9d63;
+    --brand-info: #0fa3b1; /* teal accent */
+    --brand-violet: #6c5ce7;
     --accent-text: #1a3a6c;
-    /* chart colors — read by Chart.js so graphs match the theme */
-    --chart-text: #555555;
-    --chart-grid: rgba(0,0,0,0.08);
-    --chart-blue: #1a3a6c;
+    /* gradients */
+    --grad-brand: linear-gradient(135deg, #1a3a6c 0%, #2b5ca8 100%);
+    --grad-amber: linear-gradient(135deg, #f0a500 0%, #ffc24b 100%);
+    --grad-hero: linear-gradient(120deg, rgba(16,28,54,0.86) 0%, rgba(26,58,108,0.78) 55%, rgba(15,99,112,0.72) 100%);
+    /* ---- Chart colours (read by Chart.js) ---- */
+    --chart-text: #5b6473;
+    --chart-grid: rgba(20, 34, 64, 0.08);
+    --chart-blue: #2b5ca8;
+    /* ---- Genre badge palette (light) ---- */
+    --g-indigo-bg: #e8edfb;
+    --g-indigo-fg: #2b4faf;
+    --g-teal-bg: #d8f3f1;
+    --g-teal-fg: #0b7c78;
+    --g-violet-bg: #ece8fb;
+    --g-violet-fg: #5a47c9;
+    --g-amber-bg: #fdeecf;
+    --g-amber-fg: #9a6b00;
+    --g-rose-bg: #fce0e6;
+    --g-rose-fg: #b32a48;
+    --g-slate-bg: #e7ebf1;
+    --g-slate-fg: #4a5568;
 }
 
 [data-theme="dark"] {
-    /* Dark mode — lifted off pure black so it reads as dark grey, not pitch black */
-    --bg-primary: #34383f;
-    --bg-secondary: #41454e;
-    --text-primary: #ececec;
-    --text-secondary: #b8bcc4;
-    --text-muted: #9aa0aa;
+    --bg-primary: #21242b;
+    --bg-secondary: #2b2f37;
+    --bg-elevated: #31363f;
+    --bg-tint: #363b45;
+    --text-primary: #e9ebef;
+    --text-secondary: #aab2bf;
+    --text-muted: #8c95a3;
     --text-light: #aab4c2;
-    --border-color: #565b66;
-    --shadow: 0 1px 4px rgba(0,0,0,0.4);
-    --shadow-lg: 0 2px 10px rgba(0,0,0,0.5);
-    --brand-primary: #1a3a6c; /* kept for navbar/footer bg — don't change */
+    --border-color: #3c424c;
+    --border-strong: #4a515d;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+    --shadow-hover: 0 16px 38px rgba(0, 0, 0, 0.6);
+    --brand-primary: #1a3a6c;
+    --brand-primary-2: #2b5ca8;
     --brand-secondary: #f0a500;
     --brand-danger: #ff6b6b;
     --brand-success: #51cf66;
-    /* accent-text flips to a clearly readable light blue (not glaring white) */
+    --brand-info: #34c3cf;
+    --brand-violet: #9b8cff;
     --accent-text: #9ec5ff;
-    /* chart colors brightened for contrast on dark cards */
+    --grad-brand: linear-gradient(135deg, #224a87 0%, #2f6bc0 100%);
+    --grad-amber: linear-gradient(135deg, #d99400 0%, #f0a500 100%);
+    --grad-hero: linear-gradient(120deg, rgba(8,14,28,0.88) 0%, rgba(18,40,76,0.82) 55%, rgba(9,64,72,0.78) 100%);
     --chart-text: #d5d8de;
-    --chart-grid: rgba(255,255,255,0.12);
+    --chart-grid: rgba(255, 255, 255, 0.12);
     --chart-blue: #79a6f6;
+    --g-indigo-bg: #26314f;
+    --g-indigo-fg: #9db6ff;
+    --g-teal-bg: #14373a;
+    --g-teal-fg: #5fded7;
+    --g-violet-bg: #2c2752;
+    --g-violet-fg: #b9adff;
+    --g-amber-bg: #3a2f12;
+    --g-amber-fg: #ffd27a;
+    --g-rose-bg: #3d2026;
+    --g-rose-fg: #ff97ab;
+    --g-slate-bg: #2f343d;
+    --g-slate-fg: #aeb7c4;
 }
 
 html {
@@ -55,35 +104,58 @@ body {
     background-color: var(--bg-primary);
     margin-bottom: 60px;
     color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
     transition: background-color 0.2s, color 0.2s;
 }
 
-/* Navbar */
+::selection {
+    background: rgba(43, 92, 168, 0.22);
+}
+
+/* Thin, themed scrollbars where supported */
+* {
+    scrollbar-color: var(--border-strong) transparent;
+}
+
+/* ============================================================================
+   Navbar
+   ========================================================================== */
 .navbar-custom {
-    background-color: var(--brand-primary);
+    background: var(--grad-brand);
+    box-shadow: 0 2px 10px rgba(20, 34, 64, 0.18);
 }
 
     .navbar-custom .navbar-brand,
     .navbar-custom .nav-link {
         color: #ffffff;
+        font-weight: 500;
     }
 
-        .navbar-custom .nav-link:hover {
-            color: var(--brand-secondary);
-        }
+    .navbar-custom .navbar-brand {
+        font-weight: 700;
+        letter-spacing: 0.2px;
+    }
+
+    .navbar-custom .nav-link:hover {
+        color: var(--brand-secondary-2);
+    }
 
 .navbar-toggler {
-    border-color: #ffffff;
+    border-color: rgba(255,255,255,0.6);
 }
 
 .dark-mode-btn {
     background-color: transparent;
     color: #ffffff;
-    border: 1px solid #ffffff;
+    border: 1px solid rgba(255,255,255,0.7);
     border-radius: 20px;
-    padding: 4px 12px;
+    padding: 4px 14px;
     font-size: 0.85rem;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.15s, color 0.15s;
 }
 
     .dark-mode-btn:hover {
@@ -91,108 +163,215 @@ body {
         color: var(--brand-primary);
     }
 
-/* Home page hero */
+    .dark-mode-btn .bi {
+        font-size: 0.95rem;
+        line-height: 1;
+    }
+
+/* ============================================================================
+   Home page
+   ========================================================================== */
 .home-hero {
-    background-image: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url('/images/home.jpg');
+    background-image: var(--grad-hero), url('/images/home.jpg');
     background-size: cover;
     background-position: center;
     color: #ffffff;
     text-align: center;
-    padding: 80px 20px;
-    border-radius: 6px;
-    margin-bottom: 40px;
+    padding: 92px 20px;
+    border-radius: 14px;
+    margin-bottom: 44px;
+    box-shadow: var(--shadow-lg);
 }
 
     .home-hero h1 {
-        font-size: 2.6rem;
-        margin-bottom: 5px;
+        font-size: 2.8rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+        text-shadow: 0 2px 18px rgba(0,0,0,0.35);
     }
 
     .home-hero p {
-        font-size: 1.1rem;
-        max-width: 600px;
-        margin: 0 auto 25px auto;
+        font-size: 1.12rem;
+        max-width: 620px;
+        margin: 0 auto 28px auto;
+        opacity: 0.95;
     }
 
 .btn-orange {
-    background-color: #ff9800;
-    border-color: var(--brand-secondary);
-    color: var(--brand-primary);
-    font-weight: 600;
-    padding: 10px 30px;
+    background: var(--grad-amber);
+    border: none;
+    color: #3a2c00;
+    font-weight: 700;
+    padding: 11px 34px;
+    border-radius: 30px;
+    box-shadow: 0 6px 18px rgba(240, 165, 0, 0.35);
+    transition: transform 0.12s, box-shadow 0.15s;
 }
 
     .btn-orange:hover {
-        background-color: #fcb853;
-        border-color: #ff9800;
-        color: var(--brand-primary);
+        color: #3a2c00;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(240, 165, 0, 0.45);
     }
 
 /* Fact cards on home */
 .fact-card {
     background-color: var(--bg-secondary);
     text-align: center;
-    padding: 25px 15px;
-    border-radius: 5px;
+    padding: 26px 15px;
+    border-radius: 12px;
     box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
     border-top: 4px solid var(--accent-text);
     height: 100%;
-    margin-bottom: 15px;
+    margin-bottom: 18px;
+    transition: transform 0.14s, box-shadow 0.14s;
 }
+
+    .fact-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-hover);
+    }
+
+    .fact-card .fact-icon {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: var(--bg-tint);
+        color: var(--accent-text);
+        font-size: 1.4rem;
+    }
 
     .fact-card .fact-number {
         color: var(--accent-text);
         font-size: 2.2rem;
-        font-weight: 700;
-        margin-bottom: 5px;
+        font-weight: 800;
+        margin-bottom: 4px;
     }
 
     .fact-card .fact-label {
         color: var(--text-secondary);
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
+
+    /* tint variants for the four fact cards */
+    .fact-card.t-navy {
+        border-top-color: var(--brand-primary);
+    }
+
+        .fact-card.t-navy .fact-icon {
+            background: var(--g-indigo-bg);
+            color: var(--g-indigo-fg);
+        }
+
+    .fact-card.t-teal {
+        border-top-color: var(--brand-info);
+    }
+
+        .fact-card.t-teal .fact-icon {
+            background: var(--g-teal-bg);
+            color: var(--g-teal-fg);
+        }
+
+    .fact-card.t-amber {
+        border-top-color: var(--brand-secondary);
+    }
+
+        .fact-card.t-amber .fact-icon {
+            background: var(--g-amber-bg);
+            color: var(--g-amber-fg);
+        }
+
+    .fact-card.t-violet {
+        border-top-color: var(--brand-violet);
+    }
+
+        .fact-card.t-violet .fact-icon {
+            background: var(--g-violet-bg);
+            color: var(--g-violet-fg);
+        }
 
 .gallery-img {
     width: 100%;
-    height: 220px;
+    height: 230px;
     object-fit: cover;
-    border-radius: 5px;
-    margin-bottom: 15px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    transition: transform 0.18s;
 }
+
+    .gallery-img:hover {
+        transform: scale(1.012);
+    }
 
 .section-title {
     color: var(--accent-text);
-    margin-bottom: 25px;
+    margin-bottom: 26px;
+    font-weight: 700;
+    position: relative;
+    padding-bottom: 10px;
 }
 
-/* Portal layout */
+    .section-title::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 54px;
+        height: 3px;
+        border-radius: 3px;
+        background: var(--grad-amber);
+    }
+
+/* ============================================================================
+   Portal layout
+   ========================================================================== */
 .portal-page {
     background-color: var(--bg-primary);
     margin: 0;
 }
 
 .portal-nav {
-    background-color: var(--brand-primary);
-    padding: 0 20px;
+    background: var(--grad-brand);
+    padding: 0 22px;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
+    box-shadow: 0 2px 12px rgba(20, 34, 64, 0.22);
+    position: sticky;
+    top: 0;
+    z-index: 1020;
 }
 
     .portal-nav .brand {
         color: #ffffff;
         font-weight: 700;
-        margin-right: 25px;
+        margin-right: 26px;
         padding: 15px 0;
-        font-size: 1.05rem;
+        font-size: 1.06rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
+
+        .portal-nav .brand .bi {
+            color: var(--brand-secondary-2);
+        }
 
     .portal-nav a {
         color: var(--text-light);
-        padding: 17px 14px;
+        padding: 17px 15px;
         text-decoration: none;
         font-size: 0.9rem;
+        border-bottom: 3px solid transparent;
+        transition: color 0.14s, border-color 0.14s;
     }
 
         .portal-nav a:hover {
@@ -201,7 +380,7 @@ body {
 
         .portal-nav a.active {
             color: #ffffff;
-            border-bottom: 3px solid var(--brand-secondary);
+            border-bottom-color: var(--brand-secondary);
         }
 
     .portal-nav .spacer {
@@ -209,201 +388,516 @@ body {
     }
 
     .portal-nav .nav-logout {
-        color: #ffaaaa;
+        color: #ffc1c1;
     }
+
+        .portal-nav .nav-logout:hover {
+            color: #ffffff;
+        }
 
     .portal-nav .dark-btn-wrap {
         margin-right: 12px;
     }
 
 .portal-content {
-    padding: 30px 20px;
-    max-width: 1100px;
+    padding: 30px 22px;
+    max-width: 1140px;
     margin: 0 auto;
 }
 
     .portal-content h2 {
         color: var(--accent-text);
-        font-size: 1.6rem;
-        margin-bottom: 5px;
+        font-size: 1.65rem;
+        font-weight: 700;
+        margin-bottom: 4px;
     }
 
     .portal-content .subtitle {
         color: var(--text-secondary);
-        font-size: 0.9rem;
-        margin-bottom: 20px;
+        font-size: 0.92rem;
+        margin-bottom: 18px;
     }
 
-/* Stat cards (portal) */
-.stat-card {
-    background-color: var(--bg-secondary);
-    border-radius: 5px;
-    padding: 18px;
-    box-shadow: var(--shadow);
-    border-left: 4px solid var(--brand-primary);
-    margin-bottom: 15px;
+    .portal-content hr {
+        border-color: var(--border-color);
+        opacity: 0.7;
+    }
+
+/* Section heading used inside partials (replaces inline-styled h4) */
+.portal-section-title {
+    color: var(--accent-text);
+    font-weight: 700;
+    font-size: 1.18rem;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 26px 0 16px;
 }
+
+    .portal-section-title .bi {
+        color: var(--brand-secondary);
+    }
+
+/* ============================================================================
+   Stat cards (portal)
+   ========================================================================== */
+.stat-card {
+    position: relative;
+    background-color: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 18px 18px 18px 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: transform 0.14s, box-shadow 0.14s;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+    .stat-card::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--brand-primary);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-hover);
+    }
+
+    .stat-card .stat-icon {
+        flex: 0 0 auto;
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        background: var(--g-indigo-bg);
+        color: var(--g-indigo-fg);
+    }
+
+    .stat-card .stat-body {
+        display: flex;
+        flex-direction: column;
+    }
 
     .stat-card .stat-label {
         color: var(--text-secondary);
         text-transform: uppercase;
-        font-size: 0.75rem;
-        margin-bottom: 5px;
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        margin-bottom: 3px;
     }
 
     .stat-card .stat-value {
         color: var(--accent-text);
-        font-size: 1.8rem;
-        font-weight: 700;
+        font-size: 1.7rem;
+        font-weight: 800;
+        line-height: 1.1;
     }
 
-    .stat-card.success {
-        border-left-color: var(--brand-success);
+    .stat-card.success::before {
+        background: var(--brand-success);
     }
 
-    .stat-card.warning {
-        border-left-color: var(--brand-secondary);
-    }
-
-    .stat-card.danger {
-        border-left-color: var(--brand-danger);
-    }
-
-        .stat-card.danger .stat-value {
-            color: var(--brand-danger);
-        }
-
-    .stat-card.warning .stat-value {
-        color: #d68910;
+    .stat-card.success .stat-icon {
+        background: var(--g-teal-bg);
+        color: var(--g-teal-fg);
     }
 
     .stat-card.success .stat-value {
         color: var(--brand-success);
     }
 
-/* Info cards (account page) */
+    .stat-card.warning::before {
+        background: var(--brand-secondary);
+    }
+
+    .stat-card.warning .stat-icon {
+        background: var(--g-amber-bg);
+        color: var(--g-amber-fg);
+    }
+
+    .stat-card.warning .stat-value {
+        color: #c98a00;
+    }
+
+[data-theme="dark"] .stat-card.warning .stat-value {
+    color: var(--brand-secondary-2);
+}
+
+.stat-card.danger::before {
+    background: var(--brand-danger);
+}
+
+.stat-card.danger .stat-icon {
+    background: var(--g-rose-bg);
+    color: var(--g-rose-fg);
+}
+
+.stat-card.danger .stat-value {
+    color: var(--brand-danger);
+}
+
+/* ============================================================================
+   Info cards (account page)
+   ========================================================================== */
 .info-card {
     background-color: var(--bg-secondary);
-    border-radius: 5px;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 18px 20px;
     box-shadow: var(--shadow);
-    margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: transform 0.14s, box-shadow 0.14s;
 }
+
+    .info-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-hover);
+    }
+
+    .info-card .info-icon {
+        flex: 0 0 auto;
+        width: 42px;
+        height: 42px;
+        border-radius: 11px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        background: var(--g-indigo-bg);
+        color: var(--g-indigo-fg);
+    }
 
     .info-card .info-label {
         color: var(--text-secondary);
-        font-size: 0.8rem;
+        font-size: 0.74rem;
         text-transform: uppercase;
-        margin-bottom: 5px;
+        letter-spacing: 0.04em;
+        margin-bottom: 3px;
     }
 
     .info-card .info-value {
         color: var(--accent-text);
-        font-size: 1.1rem;
+        font-size: 1.08rem;
         font-weight: 600;
     }
 
-/* Top books list (member dashboard) */
-.top-book-row {
+/* Avatar block at the top of an account page */
+.account-hero {
     display: flex;
     align-items: center;
-    padding: 10px 12px;
-    background-color: var(--bg-secondary);
-    border-radius: 4px;
-    margin-bottom: 6px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    gap: 18px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 18px;
 }
 
-    .top-book-row .rank {
-        background-color: var(--brand-secondary);
-        color: var(--brand-primary);
-        font-weight: 700;
-        width: 32px;
-        height: 32px;
+    .account-hero .avatar {
+        flex: 0 0 auto;
+        width: 64px;
+        height: 64px;
         border-radius: 50%;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        margin-right: 15px;
-        font-size: 0.9rem;
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: #fff;
+        background: var(--grad-brand);
+        box-shadow: 0 6px 16px rgba(26, 58, 108, 0.35);
     }
 
-    .top-book-row .title {
-        font-weight: 600;
+    .account-hero .who .name {
+        font-size: 1.2rem;
+        font-weight: 700;
         color: var(--text-primary);
     }
 
-    .top-book-row .author {
+    .account-hero .who .role {
         color: var(--text-secondary);
-        font-size: 0.85rem;
+        font-size: 0.88rem;
     }
 
-    .top-book-row .count {
-        margin-left: auto;
-        color: var(--text-muted);
-        font-size: 0.85rem;
-    }
-
-/* Login */
-.login-box {
-    max-width: 400px;
-    margin: 50px auto;
-    padding: 35px 30px;
-    background-color: var(--bg-secondary);
-    border-radius: 6px;
-    box-shadow: var(--shadow-lg);
+/* ============================================================================
+   Buttons — a touch more life than stock Bootstrap
+   ========================================================================== */
+.btn {
+    border-radius: 8px;
+    font-weight: 600;
 }
 
-    .login-box h2 {
-        text-align: center;
-        color: var(--accent-text);
-        margin-bottom: 25px;
-    }
-
-/* Footer */
-.footer {
-    background-color: var(--brand-primary);
-    color: var(--text-light);
-    text-align: center;
-    padding: 15px;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
+.btn-primary {
+    background: var(--grad-brand);
+    border: none;
+    box-shadow: 0 4px 12px rgba(26, 58, 108, 0.25);
 }
 
-    .footer a {
-        color: var(--brand-secondary);
+    .btn-primary:hover,
+    .btn-primary:focus {
+        background: var(--grad-brand);
+        filter: brightness(1.08);
+        box-shadow: 0 6px 16px rgba(26, 58, 108, 0.34);
     }
 
-/* Dashboard chart cards */
-.chart-card {
-    background-color: var(--bg-secondary);
-    border-radius: 5px;
-    padding: 18px;
+.btn-secondary {
+    background-color: var(--bg-tint);
+    border: 1px solid var(--border-strong);
+    color: var(--text-primary);
+}
+
+    .btn-secondary:hover {
+        background-color: var(--border-color);
+        color: var(--text-primary);
+        border-color: var(--border-strong);
+    }
+
+.btn-outline-primary {
+    color: var(--accent-text);
+    border-color: var(--accent-text);
+}
+
+    .btn-outline-primary:hover {
+        background: var(--brand-primary);
+        border-color: var(--brand-primary);
+        color: #fff;
+    }
+
+.btn .bi {
+    vertical-align: -0.08em;
+}
+
+/* Icon-only round action buttons used in tables */
+.btn-icon {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    line-height: 1;
+}
+
+/* ============================================================================
+   Badges — genre + availability pills
+   ========================================================================== */
+.genre-badge {
+    display: inline-block;
+    padding: 3px 11px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    background: var(--g-slate-bg);
+    color: var(--g-slate-fg);
+    white-space: nowrap;
+}
+
+    .genre-badge.g-indigo {
+        background: var(--g-indigo-bg);
+        color: var(--g-indigo-fg);
+    }
+
+    .genre-badge.g-teal {
+        background: var(--g-teal-bg);
+        color: var(--g-teal-fg);
+    }
+
+    .genre-badge.g-violet {
+        background: var(--g-violet-bg);
+        color: var(--g-violet-fg);
+    }
+
+    .genre-badge.g-amber {
+        background: var(--g-amber-bg);
+        color: var(--g-amber-fg);
+    }
+
+    .genre-badge.g-rose {
+        background: var(--g-rose-bg);
+        color: var(--g-rose-fg);
+    }
+
+    .genre-badge.g-slate {
+        background: var(--g-slate-bg);
+        color: var(--g-slate-fg);
+    }
+
+.avail-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+
+    .avail-pill::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .avail-pill.yes {
+        color: var(--brand-success);
+        background: var(--g-teal-bg);
+    }
+
+    .avail-pill.no {
+        color: var(--brand-danger);
+        background: var(--g-rose-bg);
+    }
+
+/* ============================================================================
+   Toolbar (search + filters) used on the catalog pages
+   ========================================================================== */
+.toolbar {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 14px 16px;
     box-shadow: var(--shadow);
-    height: 100%;
+    margin-bottom: 18px;
 }
 
-    .chart-card .chart-title {
-        color: var(--accent-text);
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        font-weight: 600;
-        margin-bottom: 14px;
-        letter-spacing: 0.03em;
+.search-field {
+    position: relative;
+}
+
+    .search-field .bi {
+        position: absolute;
+        left: 13px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        pointer-events: none;
     }
 
-/* Tables in dark mode — the views hardcode bg-white / table-light,
-   which would otherwise render a white block on the dark page. */
+    .search-field .form-control {
+        padding-left: 38px;
+    }
+
+.filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.chip {
+    border: 1px solid var(--border-strong);
+    background: var(--bg-tint);
+    color: var(--text-secondary);
+    border-radius: 999px;
+    padding: 5px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.13s;
+}
+
+    .chip:hover {
+        color: var(--text-primary);
+        border-color: var(--accent-text);
+    }
+
+    .chip.active {
+        background: var(--brand-primary);
+        border-color: var(--brand-primary);
+        color: #fff;
+    }
+
+.result-count {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+/* Empty state shown when filters match nothing */
+.empty-state {
+    text-align: center;
+    padding: 46px 20px;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    border: 1px dashed var(--border-strong);
+    border-radius: 12px;
+}
+
+    .empty-state .bi {
+        font-size: 2.2rem;
+        color: var(--text-muted);
+        display: block;
+        margin-bottom: 10px;
+    }
+
+/* ============================================================================
+   Tables
+   ========================================================================== */
+.table {
+    --bs-table-bg: transparent;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.data-table-wrap {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+    .data-table-wrap .table {
+        margin-bottom: 0;
+    }
+
+        .data-table-wrap .table > thead > tr > th {
+            background: var(--bg-tint);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.04em;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 14px;
+        }
+
+        .data-table-wrap .table > tbody > tr > td {
+            padding: 12px 14px;
+            vertical-align: middle;
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .data-table-wrap .table > tbody > tr:hover > td {
+            background: var(--bg-tint);
+        }
+
+/* Dark-mode fixes for views that still hardcode bg-white / table-light */
 [data-theme="dark"] .table {
     --bs-table-color: var(--text-primary);
     --bs-table-bg: transparent;
     --bs-table-border-color: var(--border-color);
     --bs-table-striped-color: var(--text-primary);
-    --bs-table-striped-bg: rgba(255,255,255,0.05);
+    --bs-table-striped-bg: rgba(255,255,255,0.04);
     --bs-table-hover-color: var(--text-primary);
-    --bs-table-hover-bg: rgba(255,255,255,0.09);
+    --bs-table-hover-bg: rgba(255,255,255,0.07);
     color: var(--text-primary);
     border-color: var(--border-color);
 }
@@ -414,30 +908,157 @@ body {
 
     [data-theme="dark"] .table > thead.table-light th,
     [data-theme="dark"] .table > thead.table-light td {
-        background-color: #2b2f36;
-        color: var(--text-primary);
+        background-color: #262b33;
+        color: var(--text-secondary);
         border-color: var(--border-color);
     }
 
-/* ===== Top books carousel (scroll buttons driven by a little JS) ===== */
+/* ============================================================================
+   Login
+   ========================================================================== */
+.login-wrap {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-box {
+    width: 100%;
+    max-width: 410px;
+    margin: 40px auto;
+    padding: 36px 32px;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+}
+
+    .login-box .login-badge {
+        width: 58px;
+        height: 58px;
+        margin: 0 auto 14px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.7rem;
+        color: #fff;
+        background: var(--grad-brand);
+        box-shadow: 0 8px 20px rgba(26, 58, 108, 0.35);
+    }
+
+    .login-box h2 {
+        text-align: center;
+        color: var(--accent-text);
+        margin-bottom: 4px;
+        font-weight: 700;
+    }
+
+    .login-box .login-sub {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 0.88rem;
+        margin-bottom: 24px;
+    }
+
+    .login-box .form-label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+.login-hint {
+    margin-top: 18px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* ============================================================================
+   Footer
+   ========================================================================== */
+.footer {
+    background: var(--grad-brand);
+    color: var(--text-light);
+    text-align: center;
+    padding: 16px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+    .footer a {
+        color: var(--brand-secondary-2);
+        text-decoration: none;
+    }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+/* ============================================================================
+   Dashboard chart cards
+   ========================================================================== */
+.chart-card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+    height: 100%;
+    transition: box-shadow 0.14s;
+}
+
+    .chart-card:hover {
+        box-shadow: var(--shadow-hover);
+    }
+
+    .chart-card .chart-title {
+        color: var(--accent-text);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        margin-bottom: 14px;
+        letter-spacing: 0.04em;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+        .chart-card .chart-title .bi {
+            color: var(--brand-secondary);
+        }
+
+/* ============================================================================
+   Top books — carousel (member dashboard)
+   ========================================================================== */
 .carousel-section {
     margin: 8px 0 10px;
 }
 
-    /* title on the left, scroll buttons on the right */
     .carousel-section .carousel-head {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        margin-bottom: 12px;
+        margin-bottom: 14px;
     }
 
     .carousel-section .carousel-title {
         color: var(--accent-text);
         margin: 0;
-        font-size: 1.25rem;
+        font-size: 1.18rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 9px;
     }
+
+        .carousel-section .carousel-title .bi {
+            color: var(--brand-secondary);
+        }
 
     .carousel-section .carousel-buttons {
         display: flex;
@@ -446,9 +1067,9 @@ body {
     }
 
 .carousel-btn {
-    width: 34px;
-    height: 34px;
-    border: 1px solid var(--border-color);
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border-strong);
     border-radius: 50%;
     background-color: var(--bg-secondary);
     color: var(--accent-text);
@@ -456,12 +1077,16 @@ body {
     line-height: 1;
     cursor: pointer;
     box-shadow: var(--shadow);
-    transition: background-color 0.15s, opacity 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s, color 0.15s, opacity 0.15s;
 }
 
     .carousel-btn:hover:not(:disabled) {
-        background-color: var(--brand-primary);
-        color: #ffffff;
+        background: var(--brand-primary);
+        color: #fff;
+        border-color: var(--brand-primary);
     }
 
     .carousel-btn:disabled {
@@ -469,7 +1094,6 @@ body {
         cursor: default;
     }
 
-/* The scroller */
 .book-carousel {
     display: flex;
     gap: 16px;
@@ -477,98 +1101,256 @@ body {
     scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
     overscroll-behavior-x: contain;
-    padding: 4px 2px 14px;
+    padding: 4px 2px 16px;
     scrollbar-width: thin;
 }
 
-/* Tall, portrait card */
+/* ============================================================================
+   Book cards — used by carousel AND member catalog grid
+   ========================================================================== */
 .book-card {
     scroll-snap-align: start;
-    flex: 0 0 180px;
-    width: 180px;
     display: flex;
     flex-direction: column;
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 12px;
     box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+
+    .book-card.clickable {
+        cursor: pointer;
+    }
+
+/* allow a <button> to be used as a card without inheriting button chrome */
+button.book-card {
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+}
+
+.book-card.clickable:hover,
+.book-card.clickable:focus-visible {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--brand-primary-2);
+    outline: none;
+}
+
+/* carousel sizing */
+.book-carousel .book-card {
+    flex: 0 0 184px;
+    width: 184px;
+}
+
+.book-card .cover-wrap {
+    position: relative;
+}
+
+.book-card .cover {
+    display: block;
+    width: 100%;
+    height: 244px;
+    object-fit: cover;
+    background-color: var(--bg-tint);
+}
+
+/* hover overlay hint on clickable cards */
+.book-card .cover-wrap .peek {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: linear-gradient(180deg, rgba(16,28,54,0) 40%, rgba(16,28,54,0.72) 100%);
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.book-card.clickable:hover .peek,
+.book-card.clickable:focus-visible .peek {
+    opacity: 1;
+}
+
+.book-card .body {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+    padding: 12px 13px 14px;
+}
+
+.book-card .title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
-    .book-card .cover {
-        display: block;
-        width: 100%;
-        height: 240px; /* taller than wide */
-        object-fit: cover;
-        background-color: var(--bg-primary);
+.book-card .author {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.book-card .meta-row {
+    margin-top: auto;
+    padding-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+/* legacy availability pill kept for compatibility */
+.book-card .avail {
+    align-self: flex-start;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    color: #ffffff;
+}
+
+    .book-card .avail.yes {
+        background-color: var(--brand-success);
     }
 
-    .book-card .body {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        flex: 1;
-        padding: 10px 12px 14px;
+    .book-card .avail.no {
+        background-color: var(--brand-danger);
     }
 
-    .book-card .title {
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        line-height: 1.25;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+/* Responsive catalog grid (member Books page) */
+.book-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 18px;
+}
+
+    .book-grid .book-card .cover {
+        height: 230px;
     }
 
-    .book-card .author {
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-    }
+/* Rank ribbon for top-borrowed cards */
+.book-card .rank-ribbon {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: var(--grad-amber);
+    color: #3a2c00;
+    font-weight: 800;
+    font-size: 0.72rem;
+    padding: 3px 9px;
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
 
-    .book-card .avail {
-        margin-top: auto;
-        align-self: flex-start;
-        font-size: 0.72rem;
-        font-weight: 600;
-        padding: 3px 9px;
-        border-radius: 999px;
-        color: #ffffff;
-    }
-
-        .book-card .avail.yes { background-color: var(--brand-success); }
-        .book-card .avail.no  { background-color: var(--brand-danger); }
-
-/* ----- Modals -------------------------------------------------------
-   Bootstrap 5.3 modals default to a white background and dark text,
-   which reads as a glaring white card on top of our dark portal.
-   Re-theme via CSS variables so the modal honours data-theme.       */
-
+/* ============================================================================
+   Modals
+   ========================================================================== */
 .modal-content {
     background-color: var(--bg-secondary);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
+    border-radius: 14px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
 }
 
-.modal-header,
+.modal-header {
+    border-color: var(--border-color);
+    background: var(--bg-tint);
+}
+
 .modal-footer {
     border-color: var(--border-color);
 }
 
 .modal-title {
     color: var(--accent-text);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 9px;
 }
 
-/* Form fields inside modals: light theme already looks fine; in dark
-   mode the default white inputs would clash with the modal surface. */
-[data-theme="dark"] .modal .form-control {
+    .modal-title .bi {
+        color: var(--brand-secondary);
+    }
+
+/* In-modal error banner (client + server validation feedback) */
+.modal-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    border-radius: 9px;
+    font-size: 0.88rem;
+    background: var(--g-rose-bg);
+    color: var(--g-rose-fg);
+    border: 1px solid transparent;
+}
+
+    .modal-error .bi {
+        margin-top: 1px;
+        flex: 0 0 auto;
+    }
+
+    /* the [hidden] attribute must win over display:flex above */
+    .modal-error[hidden] {
+        display: none;
+    }
+
+/* Read-only detail rows inside the book-details modal */
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 18px;
+}
+
+    .detail-grid .detail-label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--text-secondary);
+        margin-bottom: 2px;
+    }
+
+    .detail-grid .detail-value {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+.detail-cover {
+    width: 100%;
+    max-width: 150px;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    object-fit: cover;
+}
+
+[data-theme="dark"] .modal .form-control,
+[data-theme="dark"] .modal .form-select {
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    border-color: var(--border-color);
+    border-color: var(--border-strong);
 }
 
-    [data-theme="dark"] .modal .form-control:focus {
+    [data-theme="dark"] .modal .form-control:focus,
+    [data-theme="dark"] .modal .form-select:focus {
         background-color: var(--bg-primary);
         color: var(--text-primary);
         border-color: var(--accent-text);
@@ -584,8 +1366,112 @@ body {
     color: var(--text-secondary);
 }
 
-/* The X close button is a black SVG by default — invert it in dark
-   mode so it stays visible on the dark header.                      */
 [data-theme="dark"] .modal .btn-close {
     filter: invert(1) grayscale(1) brightness(2);
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--brand-primary-2);
+    box-shadow: 0 0 0 0.2rem rgba(43, 92, 168, 0.18);
+}
+
+/* ============================================================================
+   Success toast (shown on the parent page after a modal closes)
+   ========================================================================== */
+.toast-stack {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 1090;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 360px;
+}
+
+.app-toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--brand-success);
+    border-radius: 11px;
+    padding: 13px 15px;
+    box-shadow: var(--shadow-lg);
+    animation: toastIn 0.28s ease;
+}
+
+    .app-toast.hiding {
+        animation: toastOut 0.25s ease forwards;
+    }
+
+    .app-toast .bi {
+        color: var(--brand-success);
+        font-size: 1.15rem;
+        margin-top: 1px;
+    }
+
+    .app-toast.error {
+        border-left-color: var(--brand-danger);
+    }
+
+        .app-toast.error .bi {
+            color: var(--brand-danger);
+        }
+
+    .app-toast .toast-text {
+        font-size: 0.9rem;
+        line-height: 1.35;
+    }
+
+    .app-toast .toast-close {
+        margin-left: auto;
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        font-size: 1rem;
+        line-height: 1;
+        padding: 0 0 0 6px;
+    }
+
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translateX(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes toastOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(18px);
+    }
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.001ms !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
 }

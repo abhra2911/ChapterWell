@@ -11,7 +11,7 @@
     @switch (active)
     {
         case "books":
-            <partial name="Partials/_MemBooks" />
+            <partial name="Partials/_MemBooks" model="@(Model as MemberBooksViewModel)" />
             break;
         case "account":
             <partial name="Partials/_MemAccount" />
@@ -21,3 +21,4 @@
             break;
     }
 </div>
+

@@ -32,8 +32,9 @@ namespace Lib_Mgmt.Controllers
             return View();
         }
 
-        // ---------------------------------------------------------------
+        // ===============================================================
         // Librarian portal — one action per tab.
+        // ===============================================================
 
         // GET: /Account/LibrarianDashboard
         public IActionResult LibrarianDashboard()
@@ -42,17 +43,17 @@ namespace Lib_Mgmt.Controllers
 
             var model = new LibrarianDashboardViewModel
             {
-                TotalMembers         = 50,
-                TotalTitles          = 134,
+                TotalMembers = 50,
+                TotalTitles = 134,
                 TotalCopiesAvailable = 412,
-                BooksBorrowed        = 7,
-                OverdueCount         = 3,
-                NewMembersThisMonth  = 5,
-                TotalFinesDue        = 120m,
+                BooksBorrowed = 7,
+                OverdueCount = 3,
+                NewMembersThisMonth = 5,
+                TotalFinesDue = 120m,
                 CopiesAvailable = 412,
-                CopiesBorrowed  = 7,
-                CopiesOverdue   = 3,
-                CopiesDamaged   = 8,
+                CopiesBorrowed = 7,
+                CopiesOverdue = 3,
+                CopiesDamaged = 8,
 
                 BorrowingsPerMonth = new List<MonthlyCount>
                 {
@@ -125,18 +126,48 @@ namespace Lib_Mgmt.Controllers
         public IActionResult LibrarianBooks()
         {
             ViewData["ActiveSection"] = "books";
-            return View("LibrarianPortal");
+
+            // TODO(Oracle): replace SampleCatalog() with a query over the BOOKS table.
+            var model = new LibrarianBooksViewModel { Books = SampleCatalog() };
+            return View("LibrarianPortal", model);
         }
 
         // GET: /Account/LibrarianMembers
         public IActionResult LibrarianMembers()
         {
             ViewData["ActiveSection"] = "members";
-            return View("LibrarianPortal");
+
+            // TODO(Oracle): replace with a join over MEMBERS + BORROWINGS + BOOKS.
+            var model = new LibrarianMembersViewModel
+            {
+                Borrowings = new List<MemberBorrowingRow>
+                {
+                    new MemberBorrowingRow
+                    {
+                        MemberName = "User",  MemberId = "MEM-00102", Email = "user@lib.org",
+                        BookTitle = "Clean Code",
+                        BorrowedOn = new DateTime(2026, 5, 10), DueDate = new DateTime(2026, 5, 24)
+                    },
+                    new MemberBorrowingRow
+                    {
+                        MemberName = "User1", MemberId = "MEM-00108", Email = "user1@lib.org",
+                        BookTitle = "Operating System Concepts",
+                        BorrowedOn = new DateTime(2026, 6, 3), DueDate = new DateTime(2026, 6, 30)
+                    },
+                    new MemberBorrowingRow
+                    {
+                        MemberName = "User2", MemberId = "MEM-00115", Email = "user2@lib.org",
+                        BookTitle = "Computer Networks",
+                        BorrowedOn = new DateTime(2026, 5, 8), DueDate = new DateTime(2026, 5, 22)
+                    }
+                }
+            };
+            return View("LibrarianPortal", model);
         }
 
         // ---------------------------------------------------------------
         // Librarian — modal POST handlers
+        // ---------------------------------------------------------------
 
         // POST: /Account/EditLibrarianProfile
         [HttpPost]
@@ -145,11 +176,12 @@ namespace Lib_Mgmt.Controllers
         {
             if (!ModelState.IsValid)
             {
-                TempData["FormError"]  = FirstError();
+                TempData["FormError"] = FirstError();
                 TempData["ReopenModal"] = "editProfileModal";
                 return RedirectToAction(nameof(LibrarianAccount));
             }
 
+            // TODO(Oracle): persist the updated profile.
             TempData["Success"] = "Profile updated successfully.";
             return RedirectToAction(nameof(LibrarianAccount));
         }
@@ -161,11 +193,12 @@ namespace Lib_Mgmt.Controllers
         {
             if (!ModelState.IsValid)
             {
-                TempData["FormError"]  = FirstError();
+                TempData["FormError"] = FirstError();
                 TempData["ReopenModal"] = "changePasswordModal";
                 return RedirectToAction(nameof(LibrarianAccount));
             }
 
+            // TODO(Oracle): verify current password, store the new hash.
             TempData["Success"] = "Password changed successfully.";
             return RedirectToAction(nameof(LibrarianAccount));
         }
@@ -177,19 +210,55 @@ namespace Lib_Mgmt.Controllers
         {
             if (!ModelState.IsValid)
             {
-                TempData["FormError"]  = FirstError();
+                TempData["FormError"] = FirstError();
                 TempData["ReopenModal"] = "addBookModal";
                 return RedirectToAction(nameof(LibrarianBooks));
             }
 
-
+            // TODO(Oracle): INSERT INTO BOOKS (...).
             TempData["Success"] = $"\"{model.Title}\" added to the catalog.";
             return RedirectToAction(nameof(LibrarianBooks));
         }
 
-        // ---------------------------------------------------------------
+        // POST: /Account/EditBook
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditBook(EditBookViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["FormError"] = FirstError();
+                TempData["ReopenModal"] = "editBookModal";
+                return RedirectToAction(nameof(LibrarianBooks));
+            }
+
+            // TODO(Oracle): UPDATE BOOKS SET ... WHERE ID = @model.Id.
+            TempData["Success"] = $"\"{model.Title}\" was updated.";
+            return RedirectToAction(nameof(LibrarianBooks));
+        }
+
+        // POST: /Account/DeleteBook
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteBook(int id, string title)
+        {
+            if (id <= 0)
+            {
+                TempData["FormError"] = "Could not identify the book to delete.";
+                TempData["ReopenModal"] = "deleteBookModal";
+                return RedirectToAction(nameof(LibrarianBooks));
+            }
+
+            // TODO(Oracle): DELETE FROM BOOKS WHERE ID = @id (guard against active loans).
+            TempData["Success"] = string.IsNullOrEmpty(title)
+                ? "Book removed from the catalog."
+                : $"\"{title}\" was removed from the catalog.";
+            return RedirectToAction(nameof(LibrarianBooks));
+        }
+
+        // ===============================================================
         // Member portal — one action per tab.
-        // ---------------------------------------------------------------
+        // ===============================================================
 
         // GET: /Account/MemberDashboard
         public IActionResult MemberDashboard()
@@ -214,12 +283,11 @@ namespace Lib_Mgmt.Controllers
 
             var model = new MemberDashboardViewModel
             {
-                MemberName        = "User",
-                ActiveLoans       = loans,
+                MemberName = "User",
+                ActiveLoans = loans,
                 CurrentlyBorrowed = loans.Count,
-                OverdueCount      = loans.Count(l => l.DaysOverdue > 0),
-                FineDue           = loans.Sum(l => l.Fine),
-
+                OverdueCount = loans.Count(l => l.DaysOverdue > 0),
+                FineDue = loans.Sum(l => l.Fine),
 
                 // Set CoverImage per row (e.g. "/images/covers/{isbn}.jpg");
                 // when left empty the view falls back to placeholder-cover.svg.
@@ -252,7 +320,10 @@ namespace Lib_Mgmt.Controllers
         public IActionResult MemberBooks()
         {
             ViewData["ActiveSection"] = "books";
-            return View("MemberPortal");
+
+            // TODO(Oracle): replace SampleCatalog() with a query over the BOOKS table.
+            var model = new MemberBooksViewModel { Books = SampleCatalog() };
+            return View("MemberPortal", model);
         }
 
         // ---------------------------------------------------------------
@@ -266,11 +337,12 @@ namespace Lib_Mgmt.Controllers
         {
             if (!ModelState.IsValid)
             {
-                TempData["FormError"]  = FirstError();
+                TempData["FormError"] = FirstError();
                 TempData["ReopenModal"] = "editProfileModal";
                 return RedirectToAction(nameof(MemberAccount));
             }
 
+            // TODO(Oracle): persist the updated profile.
             TempData["Success"] = "Profile updated successfully.";
             return RedirectToAction(nameof(MemberAccount));
         }
@@ -282,11 +354,12 @@ namespace Lib_Mgmt.Controllers
         {
             if (!ModelState.IsValid)
             {
-                TempData["FormError"]  = FirstError();
+                TempData["FormError"] = FirstError();
                 TempData["ReopenModal"] = "changePasswordModal";
                 return RedirectToAction(nameof(MemberAccount));
             }
 
+            // TODO(Oracle): verify current password, store the new hash.
             TempData["Success"] = "Password changed successfully.";
             return RedirectToAction(nameof(MemberAccount));
         }
@@ -306,6 +379,27 @@ namespace Lib_Mgmt.Controllers
                 .SelectMany(v => v.Errors)
                 .Select(e => e.ErrorMessage)
                 .FirstOrDefault() ?? "Please correct the errors and try again.";
+        }
+
+        /// <summary>
+        /// Sample catalog used by both Books pages until Oracle is connected.
+        /// TODO(Oracle): delete this and load CatalogBook rows from the database.
+        /// </summary>
+        private static List<CatalogBook> SampleCatalog()
+        {
+            return new List<CatalogBook>
+            {
+                new CatalogBook { Id = 1, Title = "Clean Code", Author = "Robert C. Martin", Genre = "Programming", Isbn = "9780132350884", Publisher = "Prentice Hall", PublishedYear = 2008, Quantity = 12, AvailableCopies = 5 },
+                new CatalogBook { Id = 2, Title = "The Pragmatic Programmer", Author = "Hunt & Thomas", Genre = "Programming", Isbn = "9780201616224", Publisher = "Addison-Wesley", PublishedYear = 1999, Quantity = 8, AvailableCopies = 0 },
+                new CatalogBook { Id = 3, Title = "Computer Networks", Author = "Andrew S. Tanenbaum", Genre = "Networking", Isbn = "9780132126953", Publisher = "Pearson", PublishedYear = 2010, Quantity = 19, AvailableCopies = 7 },
+                new CatalogBook { Id = 4, Title = "Operating System Concepts", Author = "Silberschatz et al.", Genre = "Operating Systems", Isbn = "9781118063330", Publisher = "Wiley", PublishedYear = 2012, Quantity = 14, AvailableCopies = 3 },
+                new CatalogBook { Id = 5, Title = "Introduction to Algorithms", Author = "Cormen et al.", Genre = "Algorithms", Isbn = "9780262033848", Publisher = "MIT Press", PublishedYear = 2009, Quantity = 10, AvailableCopies = 6 },
+                new CatalogBook { Id = 6, Title = "Database System Concepts", Author = "Silberschatz et al.", Genre = "Database", Isbn = "9780073523323", Publisher = "McGraw-Hill", PublishedYear = 2010, Quantity = 9, AvailableCopies = 0 },
+                new CatalogBook { Id = 7, Title = "Design Patterns", Author = "Gamma et al.", Genre = "Programming", Isbn = "9780201633610", Publisher = "Addison-Wesley", PublishedYear = 1994, Quantity = 7, AvailableCopies = 4 },
+                new CatalogBook { Id = 8, Title = "The C Programming Language", Author = "Kernighan & Ritchie", Genre = "Programming", Isbn = "9780131103627", Publisher = "Prentice Hall", PublishedYear = 1988, Quantity = 11, AvailableCopies = 2 },
+                new CatalogBook { Id = 9, Title = "Artificial Intelligence: A Modern Approach", Author = "Russell & Norvig", Genre = "AI", Isbn = "9780136042594", Publisher = "Pearson", PublishedYear = 2009, Quantity = 6, AvailableCopies = 1 },
+                new CatalogBook { Id = 10, Title = "Structure and Interpretation of Computer Programs", Author = "Abelson & Sussman", Genre = "Programming", Isbn = "9780262011532", Publisher = "MIT Press", PublishedYear = 1996, Quantity = 5, AvailableCopies = 0 }
+            };
         }
     }
 }

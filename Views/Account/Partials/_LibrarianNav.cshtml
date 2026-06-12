@@ -2,7 +2,7 @@
     var active = ViewData["ActiveSection"] as string ?? "lib-dashboard";
 }
 <nav class="portal-nav">
-    <span class="brand">The Central Library</span>
+    <span class="brand"><i class="bi bi-book-half"></i>The Central Library</span>
     <a asp-controller="Account" asp-action="LibrarianDashboard"
        class="@(active == "lib-dashboard" ? "active" : "")">Dashboard</a>
     <a asp-controller="Account" asp-action="LibrarianBooks"
@@ -13,7 +13,11 @@
        class="@(active == "account" ? "active" : "")">Account</a>
     <span class="spacer"></span>
     <span class="dark-btn-wrap">
-        <button type="button" class="dark-mode-btn" onclick="toggleTheme()">Dark Mode</button>
+        <button type="button" class="dark-mode-btn" onclick="toggleTheme()">
+            <i class="bi bi-moon-stars"></i><span>Dark Mode</span>
+        </button>
     </span>
-    <a asp-controller="Account" asp-action="Logout" class="nav-logout">Logout</a>
+    <a asp-controller="Account" asp-action="Logout" class="nav-logout">
+        <i class="bi bi-box-arrow-right me-1"></i>Logout
+    </a>
 </nav>

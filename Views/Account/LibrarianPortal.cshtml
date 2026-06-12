@@ -14,10 +14,10 @@
             <partial name="Partials/_LibAccount" />
             break;
         case "books":
-            <partial name="Partials/_LibBooks" />
+            <partial name="Partials/_LibBooks" model="@(Model as LibrarianBooksViewModel)" />
             break;
         case "members":
-            <partial name="Partials/_LibMembers" />
+            <partial name="Partials/_LibMembers" model="@(Model as LibrarianMembersViewModel)" />
             break;
         default:
             <partial name="Partials/_LibDashboard" model="@(Model as LibrarianDashboardViewModel)" />

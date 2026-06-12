@@ -7,59 +7,81 @@
 <div class="row">
     <div class="col-md-4 col-sm-6">
         <div class="stat-card">
-            <div class="stat-label">Currently Borrowed</div>
-            <div class="stat-value">@Model.CurrentlyBorrowed</div>
+            <div class="stat-icon"><i class="bi bi-journal-bookmark"></i></div>
+            <div class="stat-body">
+                <div class="stat-label">Currently Borrowed</div>
+                <div class="stat-value">@Model.CurrentlyBorrowed</div>
+            </div>
         </div>
     </div>
     <div class="col-md-4 col-sm-6">
         <div class="stat-card danger">
-            <div class="stat-label">Overdue</div>
-            <div class="stat-value">@Model.OverdueCount</div>
+            <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+            <div class="stat-body">
+                <div class="stat-label">Overdue</div>
+                <div class="stat-value">@Model.OverdueCount</div>
+            </div>
         </div>
     </div>
     <div class="col-md-4 col-sm-6">
         <div class="stat-card warning">
-            <div class="stat-label">Fine Due</div>
-            <div class="stat-value">&#8377;@Model.FineDue</div>
+            <div class="stat-icon"><i class="bi bi-cash-coin"></i></div>
+            <div class="stat-body">
+                <div class="stat-label">Fine Due</div>
+                <div class="stat-value">&#8377;@Model.FineDue</div>
+            </div>
         </div>
     </div>
 </div>
 
 <div class="carousel-section">
     <div class="carousel-head">
-        <h4 class="mt-4 mb-3" style="color: var(--accent-text);">Top 10 Most Borrowed Books</h4>
+        <h4 class="carousel-title"><i class="bi bi-fire"></i>Top 10 Most Borrowed Books</h4>
         <div class="carousel-buttons">
             <button type="button" class="carousel-btn prev" aria-label="Scroll to previous books">&#10094;</button>
             <button type="button" class="carousel-btn next" aria-label="Scroll to more books">&#10095;</button>
         </div>
     </div>
     <div class="book-carousel">
+        @{ var rank = 0; }
         @foreach (var book in Model.TopBooks)
         {
-            var cover = string.IsNullOrEmpty(book.CoverImage) ? "/images/placeholder-cover.svg" : book.CoverImage; 
-            <article class="book-card">
-                <img class="cover" src="@cover" alt="Cover of @book.Title" />
+            rank++;
+            var cover = string.IsNullOrEmpty(book.CoverImage) ? "/images/placeholder-cover.svg" : book.CoverImage;
+            <button type="button" class="book-card clickable"
+                    data-bs-toggle="modal" data-bs-target="#bookDetailsModal"
+                    data-title="@book.Title" data-author="@book.Author" data-isbn="@book.Isbn"
+                    data-borrow="@book.BorrowCount times borrowed"
+                    data-available="@(book.Available ? "true" : "false")"
+                    data-cover="@cover">
+                <div class="cover-wrap">
+                    <span class="rank-ribbon">#@rank</span>
+                    <img class="cover" src="@cover" alt="Cover of @book.Title" />
+                    <span class="peek"><i class="bi bi-eye"></i>View details</span>
+                </div>
                 <div class="body">
                     <div class="title">@book.Title</div>
                     <div class="author">@book.Author</div>
-                    @if (book.Available)
-                    {
-                        <span class="avail yes">Available</span>
-                    }
-                    else
-                    {
-                        <span class="avail no">Unavailable</span>
-                    }
+                    <div class="meta-row">
+                        @if (book.Available)
+                        {
+                            <span class="avail-pill yes">Available</span>
+                        }
+                        else
+                        {
+                            <span class="avail-pill no">Out</span>
+                        }
+                    </div>
                 </div>
-            </article>
+            </button>
         }
     </div>
 </div>
 
-<h4 class="mt-4 mb-3" style="color: var(--accent-text);">My Active Loans</h4>
-<div class="table-responsive">
-    <table class="table table-striped table-hover bg-white">
-        <thead class="table-light">
+<h4 class="portal-section-title"><i class="bi bi-bookmark-check"></i>My Active Loans</h4>
+<div class="data-table-wrap">
+    <table class="table table-hover align-middle mb-0">
+        <thead>
             <tr>
                 <th>Title</th>
                 <th>Borrowed On</th>
@@ -78,17 +100,17 @@
                 @foreach (var loan in Model.ActiveLoans)
                 {
                     <tr>
-                        <td>@loan.Title</td>
+                        <td class="fw-semibold">@loan.Title</td>
                         <td>@loan.BorrowedOn.ToString("dd MMM yyyy")</td>
                         <td>@loan.DueDate.ToString("dd MMM yyyy")</td>
                         @if (loan.Status == "Overdue")
                         {
-                            <td class="text-danger">Overdue</td>
-                            <td class="text-danger">&#8377;@loan.Fine</td>
+                            <td><span class="avail-pill no">Overdue</span></td>
+                            <td class="text-danger fw-semibold">&#8377;@loan.Fine</td>
                         }
                         else
                         {
-                            <td class="text-success">On time</td>
+                            <td><span class="avail-pill yes">On time</span></td>
                             <td>&#8377;@loan.Fine</td>
                         }
                     </tr>
@@ -96,4 +118,48 @@
             }
         </tbody>
     </table>
+</div>
+
+
+<!--   Book details modal (read-only, filled from the clicked card's data-*)   -->
+<div class="modal fade" id="bookDetailsModal" tabindex="-1" data-fillable
+     aria-labelledby="bookDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bookDetailsModalLabel">
+                    <i class="bi bi-book"></i>Book Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-4">
+                    <div class="col-sm-4 text-center">
+                        <img class="detail-cover" data-field="cover" src="/images/placeholder-cover.svg" alt="Book cover" />
+                        <div class="mt-3">
+                            <span class="avail-pill yes" data-avail-pill>Available</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-8">
+                        <h4 class="mb-1" style="color: var(--text-primary);" data-field="title"></h4>
+                        <p class="text-secondary mb-3" data-field="author"></p>
+
+                        <div class="detail-grid">
+                            <div>
+                                <div class="detail-label">ISBN</div>
+                                <div class="detail-value" data-field="isbn"></div>
+                            </div>
+                            <div>
+                                <div class="detail-label">Popularity</div>
+                                <div class="detail-value" data-field="borrow"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>

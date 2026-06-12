@@ -5,32 +5,38 @@
 <div class="home-hero">
     <h1>Welcome to The Central Library</h1>
     <p>A sanctuary of knowledge open to all members of the community.</p>
-    <a asp-controller="Account" asp-action="Login" class="btn btn-orange">Login</a>
+    <a asp-controller="Account" asp-action="Login" class="btn btn-orange">
+        <i class="bi bi-box-arrow-in-right me-1"></i>Login
+    </a>
 </div>
 
 <h3 class="section-title">Our Library at a Glance</h3>
 
 <div class="row">
     <div class="col-md-3 col-sm-6">
-        <div class="fact-card">
+        <div class="fact-card t-navy">
+            <div class="fact-icon"><i class="bi bi-book"></i></div>
             <div class="fact-number">12,400+</div>
             <div class="fact-label">Books</div>
         </div>
     </div>
     <div class="col-md-3 col-sm-6">
-        <div class="fact-card">
+        <div class="fact-card t-teal">
+            <div class="fact-icon"><i class="bi bi-people"></i></div>
             <div class="fact-number">3,200</div>
             <div class="fact-label">Members</div>
         </div>
     </div>
     <div class="col-md-3 col-sm-6">
-        <div class="fact-card">
+        <div class="fact-card t-amber">
+            <div class="fact-icon"><i class="bi bi-arrow-left-right"></i></div>
             <div class="fact-number">840</div>
             <div class="fact-label">Loans This Month</div>
         </div>
     </div>
     <div class="col-md-3 col-sm-6">
-        <div class="fact-card">
+        <div class="fact-card t-violet">
+            <div class="fact-icon"><i class="bi bi-building"></i></div>
             <div class="fact-number">1952</div>
             <div class="fact-label">Established</div>
         </div>
@@ -41,7 +47,7 @@
 
 <div class="row">
     <div class="col-md-6">
-        <img src='@Url.Content("~/images/img1.jpg")'           @* @Url.Content(path) returns absolute path with regard to project folder *@
+        <img src='@Url.Content("~/images/img1.jpg")'
              alt="Reading hall" class="gallery-img" />
     </div>
     <div class="col-md-6">
@@ -54,16 +60,18 @@
 
 <div class="row">
     <div class="col-md-6">
-        <h5>Opening Hours</h5>
-        <table class="table table-sm">
-            <tr><td>Monday &ndash; Friday</td><td>8:00 AM &ndash; 8:00 PM</td></tr>
-            <tr><td>Saturday</td><td>9:00 AM &ndash; 6:00 PM</td></tr>
-            <tr><td>Sunday</td><td>10:00 AM &ndash; 4:00 PM</td></tr>
-            <tr><td>Public Holidays</td><td>Closed</td></tr>
-        </table>
+        <h5 class="mb-3"><i class="bi bi-clock me-2" style="color: var(--brand-secondary);"></i>Opening Hours</h5>
+        <div class="data-table-wrap">
+            <table class="table table-sm mb-0">
+                <tr><td>Monday &ndash; Friday</td><td>8:00 AM &ndash; 8:00 PM</td></tr>
+                <tr><td>Saturday</td><td>9:00 AM &ndash; 6:00 PM</td></tr>
+                <tr><td>Sunday</td><td>10:00 AM &ndash; 4:00 PM</td></tr>
+                <tr><td>Public Holidays</td><td>Closed</td></tr>
+            </table>
+        </div>
     </div>
     <div class="col-md-6">
-        <h5>Membership</h5>
+        <h5 class="mb-3"><i class="bi bi-card-checklist me-2" style="color: var(--brand-secondary);"></i>Membership</h5>
         <p>
             Members may borrow up to <strong>3 books</strong> at a time for a period of
             <strong>14 days</strong>. A fine of &#8377;2 per day is charged on overdue returns.

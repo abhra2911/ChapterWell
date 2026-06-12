@@ -1,87 +1,87 @@
+@model Lib_Mgmt.Models.LibrarianBooksViewModel
 @{
-    var reopen = TempData["ReopenModal"] as string;
+    var reopen    = TempData["ReopenModal"] as string;
+    var formError = TempData["FormError"] as string;
+    var books     = Model?.Books ?? new List<Lib_Mgmt.Models.CatalogBook>();
 }
 
 <h2>Books</h2>
 <p class="subtitle">Browse and manage the catalog</p>
 <hr />
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
-@if (TempData["FormError"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        @TempData["FormError"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
-
-<div class="mb-3">
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
     <button type="button" class="btn btn-primary"
             data-bs-toggle="modal" data-bs-target="#addBookModal">
-        Add Book
+        <i class="bi bi-plus-lg me-1"></i>Add Book
     </button>
+    <span class="result-count" data-filter-count>@books.Count results</span>
 </div>
 
-<form class="row g-2 mb-3" method="get">
-    <div class="col-md-10">
-        <input type="text" class="form-control" placeholder="Search by title, author, or genre..." />
+<div data-filter-root>
+    <div class="toolbar">
+        <div class="search-field">
+            <i class="bi bi-search"></i>
+            <input type="text" class="form-control" data-filter-search
+                   placeholder="Search by title, author, or genre..." aria-label="Search books" />
+        </div>
     </div>
-    <div class="col-md-2">
-        <button type="submit" class="btn btn-secondary w-100">Search</button>
+
+    <div class="data-table-wrap">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Genre</th>
+                    <th>Availability</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var b in books)
+                {
+                    <tr data-filter-item
+                        data-title="@b.Title" data-author="@b.Author"
+                        data-genre="@b.Genre" data-available="@(b.Available ? "true" : "false")">
+                        <td class="fw-semibold">@b.Title</td>
+                        <td>@b.Author</td>
+                        <td><span class="genre-badge @Lib_Mgmt.Models.GenreBadge.CssClass(b.Genre)">@b.Genre</span></td>
+                        <td>
+                            @if (b.Available)
+                            {
+                                <span class="avail-pill yes">@b.AvailableCopies of @b.Quantity</span>
+                            }
+                            else
+                            {
+                                <span class="avail-pill no">0 of @b.Quantity</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-sm btn-outline-primary btn-icon"
+                                    title="Edit" data-bs-toggle="modal" data-bs-target="#editBookModal"
+                                    data-id="@b.Id" data-title="@b.Title" data-author="@b.Author"
+                                    data-isbn="@b.Isbn" data-genre="@b.Genre" data-quantity="@b.Quantity">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger btn-icon"
+                                    title="Delete" data-bs-toggle="modal" data-bs-target="#deleteBookModal"
+                                    data-id="@b.Id" data-title="@b.Title">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+                <tr data-filter-empty style="display:none">
+                    <td colspan="5">
+                        <div class="empty-state border-0">
+                            <i class="bi bi-search"></i>
+                            No books match your search.
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-</form>
-
-<div class="table-responsive">
-    <table class="table table-striped table-striped columns table-hover bg-white ">
-        <thead class="table-light">
-            <tr>
-                <th>Title</th>
-                <th>Author</th>
-                <th>Genre</th>
-                <th>Quantity</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-
-            <tr>
-                <td>Clean Code</td>
-                <td>Robert Martin</td>
-                <td>Programming</td>
-                <td>12</td>
-                <td>
-                    <button type="button" class="btn btn-sm btn-primary">Edit</button>
-                    <button type="button" class="btn btn-sm btn-danger">Delete</button>
-                </td>
-            </tr>
-            <tr>
-                <td>The Pragmatic Programmer</td>
-                <td>Hunt &amp; Thomas</td>
-                <td>Programming</td>
-                <td>0</td>
-                <td>
-                    <button type="button" class="btn btn-sm btn-primary">Edit</button>
-                    <button type="button" class="btn btn-sm btn-danger">Delete</button>
-                </td>
-            </tr>
-            <tr>
-                <td>Computer Networks</td>
-                <td>Tanenbaum</td>
-                <td>Networking</td>
-                <td>19</td>
-                <td>
-                    <button type="button" class="btn btn-sm btn-primary">Edit</button>
-                    <button type="button" class="btn btn-sm btn-danger">Delete</button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
 </div>
 
 
@@ -93,57 +93,155 @@
 
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addBookModalLabel">Add a New Book</h5>
-                    <button type="button" class="btn-close"
-                            data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="addBookModalLabel">
+                        <i class="bi bi-journal-plus"></i>Add a New Book
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="modal-error" hidden="@(reopen == "addBookModal" ? null : "hidden")">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span class="modal-error-text">@(reopen == "addBookModal" ? formError : null)</span>
+                    </div>
+
                     <div class="row g-3">
                         <div class="col-md-8">
                             <label for="book-title" class="form-label">Title</label>
-                            <input type="text" class="form-control" id="book-title"
+                            <input type="text" class="form-control" id="book-title" data-label="Title"
                                    name="Title" required maxlength="200" />
                         </div>
                         <div class="col-md-4">
                             <label for="book-isbn" class="form-label">ISBN</label>
-                            <input type="text" class="form-control" id="book-isbn"
-                                   name="Isbn" maxlength="20"
-                                   placeholder="e.g. 9780132350884" />
+                            <input type="text" class="form-control" id="book-isbn" data-label="ISBN"
+                                   name="Isbn" maxlength="20" placeholder="e.g. 9780132350884" />
                         </div>
                         <div class="col-md-6">
                             <label for="book-author" class="form-label">Author</label>
-                            <input type="text" class="form-control" id="book-author"
+                            <input type="text" class="form-control" id="book-author" data-label="Author"
                                    name="Author" required maxlength="150" />
                         </div>
                         <div class="col-md-6">
                             <label for="book-genre" class="form-label">Genre</label>
-                            <input type="text" class="form-control" id="book-genre"
-                                   name="Genre" required maxlength="50"
-                                   placeholder="e.g. Programming, Networking" />
+                            <input type="text" class="form-control" id="book-genre" data-label="Genre"
+                                   name="Genre" required maxlength="50" placeholder="e.g. Programming, Networking" />
                         </div>
                         <div class="col-md-4">
                             <label for="book-quantity" class="form-label">Quantity</label>
-                            <input type="number" class="form-control" id="book-quantity"
+                            <input type="number" class="form-control" id="book-quantity" data-label="Quantity"
                                    name="Quantity" required min="0" max="9999" value="1" />
                         </div>
                         <div class="col-md-4">
                             <label for="book-year" class="form-label">Year</label>
-                            <input type="number" class="form-control" id="book-year"
-                                   name="PublishedYear" min="1000" max="9999"
-                                   placeholder="optional" />
+                            <input type="number" class="form-control" id="book-year" data-label="Year"
+                                   name="PublishedYear" min="1000" max="9999" placeholder="optional" />
                         </div>
                         <div class="col-md-4">
                             <label for="book-publisher" class="form-label">Publisher</label>
-                            <input type="text" class="form-control" id="book-publisher"
-                                   name="Publisher" maxlength="150"
-                                   placeholder="optional" />
+                            <input type="text" class="form-control" id="book-publisher" data-label="Publisher"
+                                   name="Publisher" maxlength="150" placeholder="optional" />
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary"
-                            data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary">Add Book</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!--   Edit Book modal (filled from the clicked row's data-*)   -->
+<div class="modal fade" id="editBookModal" tabindex="-1" data-fillable
+     aria-labelledby="editBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form asp-controller="Account" asp-action="EditBook" method="post">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editBookModalLabel">
+                        <i class="bi bi-pencil-square"></i>Edit Book
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-error" hidden="@(reopen == "editBookModal" ? null : "hidden")">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span class="modal-error-text">@(reopen == "editBookModal" ? formError : null)</span>
+                    </div>
+
+                    <input type="hidden" name="Id" data-field="id" />
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label for="edit-book-title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="edit-book-title" data-label="Title"
+                                   data-field="title" name="Title" required maxlength="200" />
+                        </div>
+                        <div class="col-md-4">
+                            <label for="edit-book-isbn" class="form-label">ISBN</label>
+                            <input type="text" class="form-control" id="edit-book-isbn" data-label="ISBN"
+                                   data-field="isbn" name="Isbn" maxlength="20" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit-book-author" class="form-label">Author</label>
+                            <input type="text" class="form-control" id="edit-book-author" data-label="Author"
+                                   data-field="author" name="Author" required maxlength="150" />
+                        </div>
+                        <div class="col-md-3">
+                            <label for="edit-book-genre" class="form-label">Genre</label>
+                            <input type="text" class="form-control" id="edit-book-genre" data-label="Genre"
+                                   data-field="genre" name="Genre" required maxlength="50" />
+                        </div>
+                        <div class="col-md-3">
+                            <label for="edit-book-quantity" class="form-label">Quantity</label>
+                            <input type="number" class="form-control" id="edit-book-quantity" data-label="Quantity"
+                                   data-field="quantity" name="Quantity" required min="0" max="9999" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!--   Delete Book confirm modal    -->
+<div class="modal fade" id="deleteBookModal" tabindex="-1" data-fillable
+     aria-labelledby="deleteBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form asp-controller="Account" asp-action="DeleteBook" method="post">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteBookModalLabel">
+                        <i class="bi bi-trash"></i>Remove Book
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-error" hidden="@(reopen == "deleteBookModal" ? null : "hidden")">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span class="modal-error-text">@(reopen == "deleteBookModal" ? formError : null)</span>
+                    </div>
+
+                    <input type="hidden" name="id" data-field="id" />
+                    <input type="hidden" name="title" data-field="title" />
+                    <p class="mb-0">
+                        Are you sure you want to remove
+                        <strong data-field="title"></strong> from the catalog?
+                        This action cannot be undone.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>Delete
+                    </button>
                 </div>
             </div>
         </form>

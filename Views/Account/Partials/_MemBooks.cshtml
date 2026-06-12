@@ -1,45 +1,144 @@
+@model Lib_Mgmt.Models.MemberBooksViewModel
+@{
+    var books  = Model?.Books ?? new List<Lib_Mgmt.Models.CatalogBook>();
+    var genres = books.Select(b => b.Genre)
+                      .Where(g => !string.IsNullOrWhiteSpace(g))
+                      .Distinct()
+                      .OrderBy(g => g)
+                      .ToList();
+}
+
 <h2>Books</h2>
-<p class="subtitle">Browse the catalog</p>
+<p class="subtitle">Browse the catalog &mdash; filter, search, and tap any book for details</p>
 <hr />
 
-<form class="row g-2 mb-3" method="get">
-    <div class="col-md-10">
-        <input type="text" class="form-control" placeholder="Search by title, author, or genre..." />
-    </div>
-    <div class="col-md-2">
-        <button type="submit" class="btn btn-secondary w-100">Search</button>
-    </div>
-</form>
+<div data-filter-root>
 
-<div class="table-responsive">
-    <table class="table table-striped table-hover bg-white">
-        <thead class="table-light">
-            <tr>
-                <th>Title</th>
-                <th>Author</th>
-                <th>Genre</th>
-                <th>Availability</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Clean Code</td>
-                <td>Robert Martin</td>
-                <td>Programming</td>
-                <td style="color: var(--brand-success)">Available</td>
-            </tr>
-            <tr>
-                <td>The Pragmatic Programmer</td>
-                <td>Hunt &amp; Thomas</td>
-                <td>Programming</td>
-                <td class="text-danger">Unavailable</td>
-            </tr>
-            <tr>
-                <td>Computer Networks</td>
-                <td>Tanenbaum</td>
-                <td>Networking</td>
-                <td style="color: var(--brand-success)">Available</td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="toolbar">
+        <div class="row g-3 align-items-center">
+            <div class="col-lg-5">
+                <div class="search-field">
+                    <i class="bi bi-search"></i>
+                    <input type="text" class="form-control" data-filter-search
+                           placeholder="Search by title, author, or genre..." aria-label="Search books" />
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="filter-chips justify-content-lg-end">
+                    <span class="chip active" data-filter-avail="all">All</span>
+                    <span class="chip" data-filter-avail="available">
+                        <i class="bi bi-check-circle me-1"></i>Available only
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-chips mt-3">
+            <span class="chip active" data-filter-genre="all">All genres</span>
+            @foreach (var g in genres)
+            {
+                <span class="chip" data-filter-genre="@g.ToLower()">@g</span>
+            }
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="result-count" data-filter-count>@books.Count results</span>
+    </div>
+
+    <div class="book-grid">
+        @foreach (var b in books)
+        {
+            var cover = string.IsNullOrEmpty(b.CoverImage) ? "/images/placeholder-cover.svg" : b.CoverImage;
+            <button type="button" class="book-card clickable" data-filter-item
+                    data-bs-toggle="modal" data-bs-target="#bookDetailsModal"
+                    data-title="@b.Title" data-author="@b.Author" data-genre="@b.Genre"
+                    data-available="@(b.Available ? "true" : "false")"
+                    data-isbn="@b.Isbn" data-publisher="@b.Publisher"
+                    data-year="@(b.PublishedYear?.ToString() ?? "—")"
+                    data-copies="@b.AvailableCopies of @b.Quantity copies"
+                    data-cover="@cover">
+                <div class="cover-wrap">
+                    <img class="cover" src="@cover" alt="Cover of @b.Title" />
+                    <span class="peek"><i class="bi bi-eye"></i>View details</span>
+                </div>
+                <div class="body">
+                    <div class="title">@b.Title</div>
+                    <div class="author">@b.Author</div>
+                    <div class="meta-row">
+                        <span class="genre-badge @Lib_Mgmt.Models.GenreBadge.CssClass(b.Genre)">@b.Genre</span>
+                        @if (b.Available)
+                        {
+                            <span class="avail-pill yes">Available</span>
+                        }
+                        else
+                        {
+                            <span class="avail-pill no">Out</span>
+                        }
+                    </div>
+                </div>
+            </button>
+        }
+    </div>
+
+    <div class="empty-state mt-3" data-filter-empty style="display:none">
+        <i class="bi bi-journal-x"></i>
+        No books match your filters. Try clearing the search or choosing a different genre.
+    </div>
+</div>
+
+
+<!--   Book details modal (read-only, filled from the clicked card's data-*)   -->
+<div class="modal fade" id="bookDetailsModal" tabindex="-1" data-fillable
+     aria-labelledby="bookDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bookDetailsModalLabel">
+                    <i class="bi bi-book"></i>Book Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-4">
+                    <div class="col-sm-4 text-center">
+                        <img class="detail-cover" data-field="cover" src="/images/placeholder-cover.svg" alt="Book cover" />
+                        <div class="mt-3">
+                            <span class="avail-pill yes" data-avail-pill>Available</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-8">
+                        <h4 class="mb-1" style="color: var(--text-primary);" data-field="title"></h4>
+                        <p class="text-secondary mb-3" data-field="author"></p>
+
+                        <div class="detail-grid">
+                            <div>
+                                <div class="detail-label">Genre</div>
+                                <div class="detail-value" data-field="genre"></div>
+                            </div>
+                            <div>
+                                <div class="detail-label">Published</div>
+                                <div class="detail-value" data-field="year"></div>
+                            </div>
+                            <div>
+                                <div class="detail-label">ISBN</div>
+                                <div class="detail-value" data-field="isbn"></div>
+                            </div>
+                            <div>
+                                <div class="detail-label">Publisher</div>
+                                <div class="detail-value" data-field="publisher"></div>
+                            </div>
+                            <div style="grid-column: 1 / -1;">
+                                <div class="detail-label">Availability</div>
+                                <div class="detail-value" data-field="copies"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
