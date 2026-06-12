@@ -1,45 +1,41 @@
-<h2>Books</h2>
-<p class="subtitle">Browse the catalog</p>
-<hr />
-
-<form class="row g-2 mb-3" method="get">
-    <div class="col-md-10">
-        <input type="text" class="form-control" placeholder="Search by title, author, or genre..." />
+<section id="books" class="portal-section active">
+    <h2>Books</h2>
+    <p class="subtitle">Browse and search the catalog</p>
+    <hr />
+    <div class="search-row">
+        <input type="text" placeholder="Search by title, author, or genre..." />
+        <button type="button">Search</button>
     </div>
-    <div class="col-md-2">
-        <button type="submit" class="btn btn-secondary w-100">Search</button>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Genre</th>
+                    <th>Availability</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Clean Code</td>
+                    <td>Robert Martin</td>
+                    <td>Programming</td>
+                    <td class="text-success">Available</td>
+                </tr>
+                <tr>
+                    <td>The Pragmatic Programmer</td>
+                    <td>Hunt &amp; Thomas</td>
+                    <td>Programming</td>
+                    <td class="text-danger">Unavailable</td>
+                </tr>
+                <tr>
+                    <td>Computer Networks</td>
+                    <td>Tanenbaum</td>
+                    <td>Networking</td>
+                    <td class="text-success">Available</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-</form>
-
-<div class="table-responsive">
-    <table class="table table-striped table-hover bg-white">
-        <thead class="table-light">
-            <tr>
-                <th>Title</th>
-                <th>Author</th>
-                <th>Genre</th>
-                <th>Availability</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Clean Code</td>
-                <td>Robert Martin</td>
-                <td>Programming</td>
-                <td style="color: var(--brand-success)">Available</td>
-            </tr>
-            <tr>
-                <td>The Pragmatic Programmer</td>
-                <td>Hunt &amp; Thomas</td>
-                <td>Programming</td>
-                <td class="text-danger">Unavailable</td>
-            </tr>
-            <tr>
-                <td>Computer Networks</td>
-                <td>Tanenbaum</td>
-                <td>Networking</td>
-                <td style="color: var(--brand-success)">Available</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+</section>

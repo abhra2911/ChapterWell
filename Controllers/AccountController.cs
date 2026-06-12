@@ -220,9 +220,6 @@ namespace Lib_Mgmt.Controllers
                 OverdueCount      = loans.Count(l => l.DaysOverdue > 0),
                 FineDue           = loans.Sum(l => l.Fine),
 
-
-                // Set CoverImage per row (e.g. "/images/covers/{isbn}.jpg");
-                // when left empty the view falls back to placeholder-cover.svg.
                 TopBooks = new List<TopBook>
                 {
                     new TopBook { Title = "Clean Code",                             Author = "Robert C. Martin",      Isbn = "9780132350884", BorrowCount = 142, Available = true  },

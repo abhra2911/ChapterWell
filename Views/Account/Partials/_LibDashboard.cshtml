@@ -131,10 +131,17 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <script>
-    //read theme colors from the CSS variables so charts match light/dark mode.
-    function themeColor(name) {
-        return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    }
+    const bookStatus = {
+        available: @Model.CopiesAvailable,
+        borrowed:  @Model.CopiesBorrowed,
+        overdue:   @Model.CopiesOverdue,
+        damaged:   @Model.CopiesDamaged
+    };
+
+    const monthlyBorrowings = {
+        labels: @Html.Raw(JsonConvert.SerializeObject(Model.BorrowingsPerMonth.Select(x => x.Month))),
+        data:   @Html.Raw(JsonConvert.SerializeObject(Model.BorrowingsPerMonth.Select(x => x.Count)))
+    };
 
     Chart.defaults.animation = true;
     Chart.defaults.color = themeColor('--chart-text');
