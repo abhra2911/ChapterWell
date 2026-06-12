@@ -4,14 +4,14 @@
 <nav class="portal-nav">
     <span class="brand">The Central Library</span>
     <a asp-controller="Account" asp-action="MemberDashboard"
-       class="@(active == "dashboard" ? "active" : null)">Dashboard</a>
+       class="@(active == "dashboard" ? "active" : "")">Dashboard</a>
     <a asp-controller="Account" asp-action="MemberBooks"
-       class="@(active == "books" ? "active" : null)">Books</a>
+       class="@(active == "books" ? "active" : "")">Books</a>
     <a asp-controller="Account" asp-action="MemberAccount"
-       class="@(active == "account" ? "active" : null)">Account</a>
-    <button class="portal-dark-toggle theme-toggle-btn" aria-label="Toggle dark mode">
-        <span class="toggle-icon">🌙</span>
-        <span class="toggle-text">Dark</span>
-    </button>
+       class="@(active == "account" ? "active" : "")">Account</a>
+    <span class="spacer"></span>
+    <span class="dark-btn-wrap">
+        <button type="button" class="dark-mode-btn" onclick="toggleTheme()">Dark Mode</button>
+    </span>
     <a asp-controller="Account" asp-action="Logout" class="nav-logout">Logout</a>
 </nav>

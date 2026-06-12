@@ -139,6 +139,92 @@ namespace Lib_Mgmt.Controllers
         }
 
         // ---------------------------------------------------------------
+        // Librarian — modal POST handlers
+        //
+        // Each handler validates the bound ViewModel, performs the
+        // (currently stubbed) Oracle write, and PRG-redirects back to
+        // the relevant tab with a TempData flash message.
+        //
+        // On validation failure we route the errors back through
+        // TempData["FormError"] so the relevant partial can re-open the
+        // modal and show what went wrong, without needing AJAX.
+        // ---------------------------------------------------------------
+
+        // POST: /Account/EditLibrarianProfile
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditLibrarianProfile(EditProfileViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["FormError"]  = FirstError();
+                TempData["ReopenModal"] = "editProfileModal";
+                return RedirectToAction(nameof(LibrarianAccount));
+            }
+
+            // TODO (Oracle): UPDATE LIBRARIANS
+            //                SET FULL_NAME = :name,
+            //                    EMAIL     = :email,
+            //                    PHONE     = :phone
+            //                WHERE LIBRARIAN_ID = :currentLibrarianId
+            //
+            // Pull :currentLibrarianId from the auth context once
+            // authentication is wired (claims / session).
+
+            TempData["Success"] = "Profile updated successfully.";
+            return RedirectToAction(nameof(LibrarianAccount));
+        }
+
+        // POST: /Account/ChangeLibrarianPassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ChangeLibrarianPassword(ChangePasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["FormError"]  = FirstError();
+                TempData["ReopenModal"] = "changePasswordModal";
+                return RedirectToAction(nameof(LibrarianAccount));
+            }
+
+            // TODO (Oracle):
+            //   1. SELECT PASSWORD_HASH FROM LIBRARIANS WHERE LIBRARIAN_ID = :id
+            //   2. Verify model.CurrentPassword against the hash (BCrypt /
+            //      PBKDF2 — pick one and stick with it across both tables).
+            //   3. If mismatch → ModelState.AddModelError(...); return.
+            //   4. UPDATE LIBRARIANS SET PASSWORD_HASH = :newHash WHERE LIBRARIAN_ID = :id
+
+            TempData["Success"] = "Password changed successfully.";
+            return RedirectToAction(nameof(LibrarianAccount));
+        }
+
+        // POST: /Account/AddBook
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddBook(AddBookViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["FormError"]  = FirstError();
+                TempData["ReopenModal"] = "addBookModal";
+                return RedirectToAction(nameof(LibrarianBooks));
+            }
+
+            // TODO (Oracle): INSERT INTO BOOKS
+            //                  (BOOK_ID, TITLE, AUTHOR, ISBN, GENRE,
+            //                   QUANTITY, PUBLISHED_YEAR, PUBLISHER)
+            //                VALUES
+            //                  (SEQ_BOOK_ID.NEXTVAL, :title, :author, :isbn, :genre,
+            //                   :quantity, :publishedYear, :publisher)
+            //
+            // Use OracleParameter (or EF Core's DbParameter) — never
+            // string-concat user input into the SQL.
+
+            TempData["Success"] = $"\"{model.Title}\" added to the catalog.";
+            return RedirectToAction(nameof(LibrarianBooks));
+        }
+
+        // ---------------------------------------------------------------
         // Member portal — one action per tab.
         // ---------------------------------------------------------------
 
@@ -171,6 +257,9 @@ namespace Lib_Mgmt.Controllers
                 OverdueCount      = loans.Count(l => l.DaysOverdue > 0),
                 FineDue           = loans.Sum(l => l.Fine),
 
+
+                // Set CoverImage per row (e.g. "/images/covers/{isbn}.jpg");
+                // when left empty the view falls back to placeholder-cover.svg.
                 TopBooks = new List<TopBook>
                 {
                     new TopBook { Title = "Clean Code",                             Author = "Robert C. Martin",      Isbn = "9780132350884", BorrowCount = 142, Available = true  },
@@ -203,10 +292,66 @@ namespace Lib_Mgmt.Controllers
             return View("MemberPortal");
         }
 
+        // ---------------------------------------------------------------
+        // Member — modal POST handlers
+        // ---------------------------------------------------------------
+
+        // POST: /Account/EditMemberProfile
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditMemberProfile(EditProfileViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["FormError"]  = FirstError();
+                TempData["ReopenModal"] = "editProfileModal";
+                return RedirectToAction(nameof(MemberAccount));
+            }
+
+            // TODO (Oracle): UPDATE MEMBERS
+            //                SET FULL_NAME = :name,
+            //                    EMAIL     = :email,
+            //                    PHONE     = :phone
+            //                WHERE MEMBER_ID = :currentMemberId
+
+            TempData["Success"] = "Profile updated successfully.";
+            return RedirectToAction(nameof(MemberAccount));
+        }
+
+        // POST: /Account/ChangeMemberPassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ChangeMemberPassword(ChangePasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["FormError"]  = FirstError();
+                TempData["ReopenModal"] = "changePasswordModal";
+                return RedirectToAction(nameof(MemberAccount));
+            }
+
+            // TODO (Oracle): same flow as ChangeLibrarianPassword,
+            //                but against the MEMBERS table.
+
+            TempData["Success"] = "Password changed successfully.";
+            return RedirectToAction(nameof(MemberAccount));
+        }
+
         // GET: /Account/Logout
         public IActionResult Logout()
         {
             return RedirectToAction(nameof(Login));
+        }
+
+        // ---------------------------------------------------------------
+        // Helpers
+        // ---------------------------------------------------------------
+        private string FirstError()
+        {
+            return ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .FirstOrDefault() ?? "Please correct the errors and try again.";
         }
     }
 }

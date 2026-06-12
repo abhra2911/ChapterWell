@@ -1,34 +1,54 @@
-// Dark mode: read saved preference, apply before first paint
-(function () {
-    var saved = localStorage.getItem('theme');
-    if (saved === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
+// Site scripts
+
+function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    const next = isDark ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+
+    // Let any page-specific code (e.g. dashboard charts) recolour itself.
+    if (typeof window.onThemeChange === 'function') {
+        window.onThemeChange();
     }
-})();
+}
 
-document.addEventListener('DOMContentLoaded', function () {
-    // Apply theme to html element (in case body wasn't ready above)
-    var saved = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', saved);
+// ----- Top books carousel: prev/next scroll buttons -----
+function initBookCarousels() {
+    var sections = document.querySelectorAll('.carousel-section');
+    for (var i = 0; i < sections.length; i++) {
+        (function (section) {
+            var track = section.querySelector('.book-carousel');
+            var prev = section.querySelector('.carousel-btn.prev');
+            var next = section.querySelector('.carousel-btn.next');
+            if (!track || !prev || !next) return;
 
-    // Wire up every toggle button (there may be one in _Layout and one in _PortalLayout)
-    document.querySelectorAll('.theme-toggle-btn').forEach(function (btn) {
-        updateToggleLabel(btn, saved);
-        btn.addEventListener('click', function () {
-            var current = document.documentElement.getAttribute('data-theme') || 'light';
-            var next = current === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
-            localStorage.setItem('theme', next);
-            document.querySelectorAll('.theme-toggle-btn').forEach(function (b) {
-                updateToggleLabel(b, next);
+            // Scroll by roughly one "page" of cards.
+            function step() {
+                return Math.max(track.clientWidth * 0.85, 200);
+            }
+
+            prev.addEventListener('click', function () {
+                track.scrollBy({ left: -step(), behavior: 'smooth' });
             });
-        });
-    });
+            next.addEventListener('click', function () {
+                track.scrollBy({ left: step(), behavior: 'smooth' });
+            });
 
-    function updateToggleLabel(btn, theme) {
-        var icon = btn.querySelector('.toggle-icon');
-        var text = btn.querySelector('.toggle-text');
-        if (icon) icon.textContent = theme === 'dark' ? '☀' : '🌙';
-        if (text) text.textContent = theme === 'dark' ? 'Light' : 'Dark';
+            // Fade/disable the buttons when there's nothing more to scroll to.
+            // A few px of slack absorbs scroll-snap / sub-pixel rounding.
+            function updateButtons() {
+                var slack = 8;
+                var maxScroll = track.scrollWidth - track.clientWidth;
+                prev.disabled = track.scrollLeft <= slack;
+                next.disabled = track.scrollLeft >= maxScroll - slack;
+            }
+
+            track.addEventListener('scroll', updateButtons);
+            window.addEventListener('resize', updateButtons);
+            updateButtons();
+        })(sections[i]);
     }
-});
+}
+
+document.addEventListener('DOMContentLoaded', initBookCarousels);
