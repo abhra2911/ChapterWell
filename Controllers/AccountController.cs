@@ -127,8 +127,13 @@ namespace Lib_Mgmt.Controllers
         {
             ViewData["ActiveSection"] = "books";
 
-            // TODO(Oracle): replace SampleCatalog() with a query over the BOOKS table.
-            var model = new LibrarianBooksViewModel { Books = SampleCatalog() };
+            // TODO(Oracle): replace SampleCatalog() with a query over the BOOKS table,
+            //               and SampleDamagedBooks() with a query over the damage-reports table.
+            var model = new LibrarianBooksViewModel
+            {
+                Books = SampleCatalog(),
+                Damaged = SampleDamagedBooks()
+            };
             return View("LibrarianPortal", model);
         }
 
@@ -271,6 +276,30 @@ namespace Lib_Mgmt.Controllers
             return RedirectToAction(nameof(LibrarianBooks));
         }
 
+        // POST: /Account/ReportDamage
+        // Logs a new damage report and (when wired) reduces the book's
+        // AVAILABLE_COPIES by the damaged count.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ReportDamage(int bookId, int damagedCopies, string reason)
+        {
+            if (bookId <= 0 || damagedCopies <= 0)
+            {
+                TempData["FormError"] = "Please pick a book and enter a valid copy count.";
+                TempData["ReopenModal"] = "reportDamageModal";
+                return RedirectToAction(nameof(LibrarianBooks));
+            }
+
+            // TODO(Oracle): INSERT INTO BOOK_DAMAGES (BOOK_ID, COPIES, REASON, REPORTED_DATE, REPORTED_BY)
+            //               and UPDATE BOOKS SET AVAILABLE_COPIES = AVAILABLE_COPIES - @damagedCopies
+            //               (floor at 0; do not reduce below 0).
+            var title = SampleCatalog().FirstOrDefault(b => b.Id == bookId)?.Title;
+            TempData["Success"] = string.IsNullOrEmpty(title)
+                ? $"Damage logged: {damagedCopies} copy/copies."
+                : $"Damage logged: {damagedCopies} copy/copies of \"{title}\".";
+            return RedirectToAction(nameof(LibrarianBooks));
+        }
+
         // POST: /Account/IssueBook
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -378,8 +407,18 @@ namespace Lib_Mgmt.Controllers
         {
             ViewData["ActiveSection"] = "books";
 
-            // TODO(Oracle): replace SampleCatalog() with a query over the BOOKS table.
-            var model = new MemberBooksViewModel { Books = SampleCatalog() };
+            // TODO(Oracle): replace SampleCatalog() with a query over the BOOKS table,
+            //               and SampleWishlist() with a query over the WISHLIST table for
+            //               the currently-signed-in member.
+            var wish = SampleWishlist();
+            var model = new MemberBooksViewModel
+            {
+                Books = SampleCatalog(),
+                WishlistedBookIds = new HashSet<int>(
+                    SampleCatalog()
+                        .Where(b => wish.Any(w => w.Isbn == b.Isbn))
+                        .Select(b => b.Id))
+            };
             return View("MemberPortal", model);
         }
 
@@ -389,12 +428,14 @@ namespace Lib_Mgmt.Controllers
             ViewData["ActiveSection"] = "loans";
 
             // TODO(Oracle): active = BORROWINGS WHERE MEMBER_ID = @me AND RETURN_DATE IS NULL;
-            //               history = BORROWINGS WHERE MEMBER_ID = @me AND RETURN_DATE IS NOT NULL.
+            //               history = BORROWINGS WHERE MEMBER_ID = @me AND RETURN_DATE IS NOT NULL;
+            //               fines = FINES WHERE MEMBER_ID = @me (paid + outstanding).
             var model = new MemberLoansViewModel
             {
                 MemberName = "User",
                 Active = SampleActiveLoans(),
-                History = SampleLoanHistory()
+                History = SampleLoanHistory(),
+                Fines = SampleFines()
             };
             return View("MemberPortal", model);
         }
@@ -416,15 +457,10 @@ namespace Lib_Mgmt.Controllers
             return View("MemberPortal", model);
         }
 
-        // GET: /Account/MemberFines
-        public IActionResult MemberFines()
-        {
-            ViewData["ActiveSection"] = "fines";
-
-            // TODO(Oracle): SELECT this member's fines (paid + outstanding) from FINES.
-            var model = new MemberFinesViewModel { Fines = SampleFines() };
-            return View("MemberPortal", model);
-        }
+        // NOTE: MemberFines used to be its own tab. It's now a section inside
+        // the Loans tab (see MemberLoans above), so the route is no longer
+        // exposed in the nav. The PayFine / PayAllFines POST handlers below
+        // redirect back to MemberLoans.
 
         // ---------------------------------------------------------------
         // Member — modal POST handlers
@@ -462,6 +498,42 @@ namespace Lib_Mgmt.Controllers
             // TODO(Oracle): verify current password, store the new hash.
             TempData["Success"] = "Password changed successfully.";
             return RedirectToAction(nameof(MemberAccount));
+        }
+
+        // POST: /Account/ToggleWishlist
+        // Posted by the bookmark button on each book card in the Books tab.
+        // Adds the book if not already on the wishlist, removes it otherwise.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ToggleWishlist(int bookId)
+        {
+            if (bookId <= 0)
+            {
+                TempData["FormError"] = "Could not identify the book.";
+                return RedirectToAction(nameof(MemberBooks));
+            }
+
+            // TODO(Oracle):
+            //   IF EXISTS(SELECT 1 FROM WISHLIST WHERE MEMBER_ID=@me AND BOOK_ID=@bookId)
+            //     THEN DELETE the row
+            //     ELSE INSERT a new row
+            //   The unique(MEMBER_ID, BOOK_ID) constraint guards against races.
+            var book = SampleCatalog().FirstOrDefault(b => b.Id == bookId);
+            var alreadyWishlisted = SampleWishlist().Any(w => book != null && w.Isbn == book.Isbn);
+
+            if (book == null)
+            {
+                TempData["Success"] = "Wishlist updated.";
+            }
+            else if (alreadyWishlisted)
+            {
+                TempData["Success"] = $"\"{book.Title}\" removed from your wishlist.";
+            }
+            else
+            {
+                TempData["Success"] = $"\"{book.Title}\" added to your wishlist.";
+            }
+            return RedirectToAction(nameof(MemberBooks));
         }
 
         // POST: /Account/AddToWishlist
@@ -519,7 +591,7 @@ namespace Lib_Mgmt.Controllers
             TempData["Success"] = string.IsNullOrEmpty(book)
                 ? "Fine paid. Thank you!"
                 : $"Fine for \"{book}\" paid. Thank you!";
-            return RedirectToAction(nameof(MemberFines));
+            return RedirectToAction(nameof(MemberLoans));
         }
 
         // POST: /Account/PayAllFines
@@ -530,7 +602,7 @@ namespace Lib_Mgmt.Controllers
             // TODO(Oracle): UPDATE FINES SET PAID_DATE = SYSDATE
             //               WHERE MEMBER_ID = @me AND PAID_DATE IS NULL.
             TempData["Success"] = "All outstanding fines paid. Thank you!";
-            return RedirectToAction(nameof(MemberFines));
+            return RedirectToAction(nameof(MemberLoans));
         }
 
         // GET: /Account/Logout
@@ -626,6 +698,17 @@ namespace Lib_Mgmt.Controllers
                 new FineRecord { Id = 7002, BookTitle = "Computer Networks",          Reason = "Overdue (3 days)", Amount = 15m, IssuedOn = new DateTime(2026, 5, 25),  PaidOn = null },
                 new FineRecord { Id = 7003, BookTitle = "The C Programming Language", Reason = "Overdue (9 days)", Amount = 18m, IssuedOn = new DateTime(2026, 3,  1),  PaidOn = new DateTime(2026, 3,  3) },
                 new FineRecord { Id = 7004, BookTitle = "Artificial Intelligence",    Reason = "Overdue (6 days)", Amount = 12m, IssuedOn = new DateTime(2025, 12, 28), PaidOn = new DateTime(2025, 12, 29) }
+            };
+        }
+
+        private static List<DamagedBookEntry> SampleDamagedBooks()
+        {
+            return new List<DamagedBookEntry>
+            {
+                new DamagedBookEntry { Id = 8001, BookId = 1, Title = "Clean Code",                Author = "Robert C. Martin",   Isbn = "9780132350884", DamagedCopies = 2, Reason = "Water damage from spilled coffee", ReportedOn = new DateTime(2026, 4, 15), ReportedBy = "Library Admin" },
+                new DamagedBookEntry { Id = 8002, BookId = 3, Title = "Computer Networks",         Author = "Andrew S. Tanenbaum",Isbn = "9780132126953", DamagedCopies = 1, Reason = "Torn binding",                     ReportedOn = new DateTime(2026, 5,  2), ReportedBy = "Library Admin" },
+                new DamagedBookEntry { Id = 8003, BookId = 5, Title = "Introduction to Algorithms",Author = "Cormen et al.",      Isbn = "9780262033848", DamagedCopies = 3, Reason = "Pages missing (chapter 22)",       ReportedOn = new DateTime(2026, 5, 20), ReportedBy = "Library Admin" },
+                new DamagedBookEntry { Id = 8004, BookId = 8, Title = "The C Programming Language",Author = "Kernighan & Ritchie",Isbn = "9780131103627", DamagedCopies = 2, Reason = "Cover detached",                   ReportedOn = new DateTime(2026, 6,  8), ReportedBy = "Library Admin" }
             };
         }
     }

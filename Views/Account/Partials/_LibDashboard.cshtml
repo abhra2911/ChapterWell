@@ -152,12 +152,13 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <script>
-    //read theme colors from the CSS variables so charts match light/dark mode.
+    // Read theme colors from CSS variables so charts match light/dark mode.
     function themeColor(name) {
         return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     }
 
-    Chart.defaults.animation = true;
+    // Explicit defaults so animations + initial colors are not browser-default.
+    Chart.defaults.animation = { duration: 800, easing: 'easeOutQuart' };
     Chart.defaults.color = themeColor('--chart-text');
 
     var charts = [];
@@ -174,7 +175,15 @@
         },
         options: {
             responsive: true,
-            plugins: { legend: { position: 'bottom' } }
+            // Explicit per-chart color (legend + arc labels) so it doesn't
+            // depend on Chart.defaults being re-read on theme toggle.
+            color: themeColor('--chart-text'),
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: themeColor('--chart-text') }
+                }
+            }
         }
     }));
 
@@ -189,10 +198,11 @@
         },
         options: {
             responsive: true,
+            color: themeColor('--chart-text'),
             plugins: { legend: { display: false } },
             scales: {
-                x: { grid: { color: themeColor('--chart-grid') } },
-                y: { beginAtZero: true, ticks: { stepSize: 5 }, grid: { color: themeColor('--chart-grid') } }
+                x: { ticks: { color: themeColor('--chart-text') }, grid: { color: themeColor('--chart-grid') } },
+                y: { beginAtZero: true, ticks: { stepSize: 5, color: themeColor('--chart-text') }, grid: { color: themeColor('--chart-grid') } }
             }
         }
     }));
@@ -213,10 +223,11 @@
         },
         options: {
             responsive: true,
+            color: themeColor('--chart-text'),
             plugins: { legend: { display: false } },
             scales: {
-                x: { grid: { color: themeColor('--chart-grid') } },
-                y: { beginAtZero: true, grid: { color: themeColor('--chart-grid') } }
+                x: { ticks: { color: themeColor('--chart-text') }, grid: { color: themeColor('--chart-grid') } },
+                y: { beginAtZero: true, ticks: { color: themeColor('--chart-text') }, grid: { color: themeColor('--chart-grid') } }
             }
         }
     }));
@@ -233,42 +244,46 @@
         options: {
             indexAxis: 'y',
             responsive: true,
+            color: themeColor('--chart-text'),
             plugins: { legend: { display: false } },
             scales: {
-                x: { beginAtZero: true, grid: { color: themeColor('--chart-grid') } },
-                y: { grid: { color: themeColor('--chart-grid') } }
+                x: { beginAtZero: true, ticks: { color: themeColor('--chart-text') }, grid: { color: themeColor('--chart-grid') } },
+                y: { ticks: { color: themeColor('--chart-text') }, grid: { color: themeColor('--chart-grid') } }
             }
         }
     }));
 
     // Recolour the charts when the user toggles the theme (no page reload needed).
+    // Sets colors at every level (chart.options.color, scale ticks, scale grid,
+    // legend labels) so a Chart.js v3 defaults-merge quirk can't leave a chart
+    // showing stale text. update('none') skips the animation on theme toggle
+    // so the recolour is instant.
     window.onThemeChange = function () {
         var text = themeColor('--chart-text');
         var grid = themeColor('--chart-grid');
         var blue = themeColor('--chart-blue');
         Chart.defaults.color = text;
+
         charts.forEach(function (c) {
-            // axis tick + grid colours
+            c.options.color = text;
             if (c.options.scales) {
                 Object.keys(c.options.scales).forEach(function (k) {
                     var s = c.options.scales[k];
-                    s.ticks = s.ticks || {};
-                    s.ticks.color = text;
-                    s.grid = s.grid || {};
-                    s.grid.color = grid;
+                    s.ticks = s.ticks || {}; s.ticks.color = text;
+                    s.grid  = s.grid  || {}; s.grid.color  = grid;
                 });
             }
-            // legend text colour
-            if (c.options.plugins && c.options.plugins.legend) {
-                c.options.plugins.legend.labels = c.options.plugins.legend.labels || {};
-                c.options.plugins.legend.labels.color = text;
-            }
-            c.update();
+            c.options.plugins = c.options.plugins || {};
+            c.options.plugins.legend = c.options.plugins.legend || {};
+            c.options.plugins.legend.labels = c.options.plugins.legend.labels || {};
+            c.options.plugins.legend.labels.color = text;
+            c.update('none');
         });
-        // swap the navy/blue fills (pie 2nd slice + the borrowings bar)
+
+        // Swap the blue fills that came from the --chart-blue CSS var.
         charts[0].data.datasets[0].backgroundColor[1] = blue;
-        charts[1].data.datasets[0].backgroundColor = blue;
-        charts[0].update();
-        charts[1].update();
+        charts[1].data.datasets[0].backgroundColor    = blue;
+        charts[0].update('none');
+        charts[1].update('none');
     };
 </script>
