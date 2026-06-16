@@ -1,0 +1,202 @@
+@model Lib_Mgmt.Models.LibrarianBorrowingsViewModel
+@{
+    var reopen    = TempData["ReopenModal"] as string;
+    var formError = TempData["FormError"] as string;
+    var rows      = Model?.Active ?? new List<Lib_Mgmt.Models.ActiveBorrowingRow>();
+    var issuable  = Model?.IssuableBooks ?? new List<Lib_Mgmt.Models.CatalogBook>();
+    var defaultDue = DateTime.Today.AddDays(14).ToString("yyyy-MM-dd");
+}
+
+<h2>Borrowings</h2>
+<p class="subtitle">Issue books to members and process returns</p>
+<hr />
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <button type="button" class="btn btn-primary"
+            data-bs-toggle="modal" data-bs-target="#issueBookModal">
+        <i class="bi bi-box-arrow-right me-1"></i>Issue Book
+    </button>
+    <span class="result-count" data-filter-count>@rows.Count active</span>
+</div>
+
+<div data-filter-root>
+    <div class="toolbar">
+        <div class="search-field">
+            <i class="bi bi-search"></i>
+            <input type="text" class="form-control" data-filter-search
+                   placeholder="Search by member or book..." aria-label="Search borrowings" />
+        </div>
+    </div>
+
+    <div class="data-table-wrap">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Member</th>
+                    <th>Book</th>
+                    <th>Issued</th>
+                    <th>Due</th>
+                    <th>Status</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in rows)
+                {
+                    <tr data-filter-item
+                        data-title="@r.BookTitle" data-author="@r.MemberName" data-genre="@r.MemberId">
+                        <td>
+                            <div class="fw-semibold">@r.MemberName</div>
+                            <div class="text-secondary small">@r.MemberId</div>
+                        </td>
+                        <td>@r.BookTitle</td>
+                        <td>@r.BorrowedOn.ToString("dd MMM yyyy")</td>
+                        <td>@r.DueDate.ToString("dd MMM yyyy")</td>
+                        <td>
+                            @if (r.Status == "Overdue")
+                            {
+                                <span class="avail-pill no">@r.DaysOverdue d overdue</span>
+                            }
+                            else if (r.Status == "Due soon")
+                            {
+                                <span class="avail-pill soon">Due in @r.DaysLeft d</span>
+                            }
+                            else
+                            {
+                                <span class="avail-pill yes">On time</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                    data-bs-toggle="modal" data-bs-target="#returnBookModal"
+                                    data-id="@r.BorrowingId" data-title="@r.BookTitle"
+                                    data-member="@r.MemberName" data-fine="&#8377;@r.Fine">
+                                <i class="bi bi-arrow-return-left me-1"></i>Return
+                            </button>
+                        </td>
+                    </tr>
+                }
+                @if (rows.Count > 0)
+                {
+                    <tr data-filter-empty style="display:none">
+                        <td colspan="6">
+                            <div class="empty-state border-0">
+                                <i class="bi bi-search"></i>
+                                No borrowings match your search.
+                            </div>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state border-0">
+                                <i class="bi bi-journal-check"></i>
+                                No active borrowings right now.
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<!--   Issue Book modal   -->
+<div class="modal fade" id="issueBookModal" tabindex="-1"
+     aria-labelledby="issueBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form asp-controller="Account" asp-action="IssueBook" method="post">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="issueBookModalLabel">
+                        <i class="bi bi-box-arrow-right"></i>Issue a Book
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-error" hidden="@(reopen == "issueBookModal" ? null : "hidden")">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span class="modal-error-text">@(reopen == "issueBookModal" ? formError : null)</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="issue-member" class="form-label">Member ID</label>
+                        <input type="text" class="form-control" id="issue-member" data-label="Member ID"
+                               name="MemberId" required maxlength="20" placeholder="e.g. MEM-00102" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="issue-book" class="form-label">Book</label>
+                        <select class="form-select" id="issue-book" data-label="Book" name="BookId" required>
+                            <option value="">Choose a book…</option>
+                            @foreach (var b in issuable)
+                            {
+                                <option value="@b.Id">@b.Title — @b.Author (@b.AvailableCopies free)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="issue-due" class="form-label">Due Date</label>
+                        <input type="date" class="form-control" id="issue-due" data-label="Due date"
+                               name="DueDate" required value="@defaultDue" />
+                        <div class="form-text">Default loan period is 14 days.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Issue Book</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!--   Return Book confirm modal (filled from the clicked row's data-*)   -->
+<div class="modal fade" id="returnBookModal" tabindex="-1" data-fillable
+     aria-labelledby="returnBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form asp-controller="Account" asp-action="ReturnBook" method="post">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="returnBookModalLabel">
+                        <i class="bi bi-arrow-return-left"></i>Return Book
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" data-field="id" />
+                    <input type="hidden" name="title" data-field="title" />
+                    <p class="mb-2">
+                        Mark <strong data-field="title"></strong> (borrowed by
+                        <strong data-field="member"></strong>) as returned?
+                    </p>
+                    <p class="text-secondary mb-0">
+                        Any outstanding fine on this loan is <span data-field="fine"></span>.
+                        Returning will free up a copy in the catalog.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check2 me-1"></i>Confirm Return
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(reopen))
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var el = document.getElementById('@reopen');
+            if (el) new bootstrap.Modal(el).show();
+        });
+    </script>
+}

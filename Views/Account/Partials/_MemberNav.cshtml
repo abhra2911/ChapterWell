@@ -7,6 +7,12 @@
        class="@(active == "dashboard" ? "active" : "")">Dashboard</a>
     <a asp-controller="Account" asp-action="MemberBooks"
        class="@(active == "books" ? "active" : "")">Books</a>
+    <a asp-controller="Account" asp-action="MemberLoans"
+       class="@(active == "loans" ? "active" : "")">My Loans</a>
+    <a asp-controller="Account" asp-action="MemberWishlist"
+       class="@(active == "wishlist" ? "active" : "")">Wishlist</a>
+    <a asp-controller="Account" asp-action="MemberFines"
+       class="@(active == "fines" ? "active" : "")">Fines</a>
     <a asp-controller="Account" asp-action="MemberAccount"
        class="@(active == "account" ? "active" : "")">Account</a>
     <span class="spacer"></span>

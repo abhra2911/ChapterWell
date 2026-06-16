@@ -19,6 +19,9 @@
         case "members":
             <partial name="Partials/_LibMembers" model="@(Model as LibrarianMembersViewModel)" />
             break;
+        case "borrowings":
+            <partial name="Partials/_LibBorrowings" model="@(Model as LibrarianBorrowingsViewModel)" />
+            break;
         default:
             <partial name="Partials/_LibDashboard" model="@(Model as LibrarianDashboardViewModel)" />
             break;

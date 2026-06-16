@@ -1475,3 +1475,35 @@ button.book-card {
         scroll-behavior: auto !important;
     }
 }
+
+/* ============================================================================
+   Borrowings / Loans / Wishlist / Fines — additions
+   ========================================================================== */
+
+/* Amber "due soon" / "returned late" status pill (sits alongside .yes / .no) */
+.avail-pill.soon {
+    color: var(--g-amber-fg);
+    background: var(--g-amber-bg);
+}
+
+/* Wishlist cards reuse .book-card but are plain <div>s with their own actions */
+.wish-card {
+    cursor: default;
+}
+
+    .wish-card .wish-added {
+        font-size: 0.74rem;
+        color: var(--text-muted);
+        margin-top: 8px;
+    }
+
+    .wish-card .wish-remove {
+        margin-top: 10px;
+        width: 100%;
+    }
+
+    .wish-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-hover);
+        border-color: var(--border-strong);
+    }

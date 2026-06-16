@@ -7,6 +7,8 @@
        class="@(active == "lib-dashboard" ? "active" : "")">Dashboard</a>
     <a asp-controller="Account" asp-action="LibrarianBooks"
        class="@(active == "books" ? "active" : "")">Books</a>
+    <a asp-controller="Account" asp-action="LibrarianBorrowings"
+       class="@(active == "borrowings" ? "active" : "")">Borrowings</a>
     <a asp-controller="Account" asp-action="LibrarianMembers"
        class="@(active == "members" ? "active" : "")">Members</a>
     <a asp-controller="Account" asp-action="LibrarianAccount"

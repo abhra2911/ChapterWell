@@ -1,0 +1,202 @@
+@model Lib_Mgmt.Models.MemberLoansViewModel
+@{
+    var active  = Model?.Active ?? new List<Lib_Mgmt.Models.DetailedLoan>();
+    var history = Model?.History ?? new List<Lib_Mgmt.Models.LoanHistoryRow>();
+}
+
+<h2>My Loans</h2>
+<p class="subtitle">Your current borrowings and full borrowing history</p>
+<hr />
+
+<div class="row">
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-journal-bookmark"></i></div>
+            <div class="stat-body">
+                <div class="stat-label">Active Loans</div>
+                <div class="stat-value">@Model.ActiveCount</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card danger">
+            <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+            <div class="stat-body">
+                <div class="stat-label">Overdue</div>
+                <div class="stat-value">@Model.OverdueCount</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card success">
+            <div class="stat-icon"><i class="bi bi-check2-all"></i></div>
+            <div class="stat-body">
+                <div class="stat-label">Returned (history)</div>
+                <div class="stat-value">@Model.HistoryCount</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h4 class="portal-section-title"><i class="bi bi-bookmark-check"></i>Currently Borrowed</h4>
+<div class="data-table-wrap">
+    <table class="table table-hover align-middle mb-0">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Borrowed On</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Fine</th>
+                <th class="text-end">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (active.Count == 0)
+            {
+                <tr><td colspan="7" class="text-center text-muted py-4">You have no active loans right now.</td></tr>
+            }
+            else
+            {
+                @foreach (var l in active)
+                {
+                    <tr>
+                        <td class="fw-semibold">@l.Title</td>
+                        <td>@l.Author</td>
+                        <td>@l.BorrowedOn.ToString("dd MMM yyyy")</td>
+                        <td>
+                            @l.DueDate.ToString("dd MMM yyyy")
+                            @if (!l.IsOverdue)
+                            {
+                                <div class="text-secondary small">in @l.DaysLeft day@(l.DaysLeft == 1 ? "" : "s")</div>
+                            }
+                        </td>
+                        <td>
+                            @if (l.Status == "Overdue")
+                            {
+                                <span class="avail-pill no">@l.DaysOverdue d overdue</span>
+                            }
+                            else if (l.Status == "Due soon")
+                            {
+                                <span class="avail-pill soon">Due soon</span>
+                            }
+                            else
+                            {
+                                <span class="avail-pill yes">On time</span>
+                            }
+                        </td>
+                        <td class="@(l.IsOverdue ? "text-danger fw-semibold" : "")">&#8377;@l.Fine</td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                    data-bs-toggle="modal" data-bs-target="#renewLoanModal"
+                                    data-id="@l.BorrowingId" data-title="@l.Title"
+                                    data-due="@l.DueDate.ToString("dd MMM yyyy")">
+                                <i class="bi bi-arrow-repeat me-1"></i>Renew
+                            </button>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<h4 class="portal-section-title"><i class="bi bi-clock-history"></i>Borrowing History</h4>
+<div data-filter-root>
+    <div class="toolbar">
+        <div class="search-field">
+            <i class="bi bi-search"></i>
+            <input type="text" class="form-control" data-filter-search
+                   placeholder="Search history by title or author..." aria-label="Search history" />
+        </div>
+    </div>
+
+    <div class="data-table-wrap">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Borrowed On</th>
+                    <th>Returned On</th>
+                    <th>Outcome</th>
+                    <th>Fine Paid</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (history.Count == 0)
+                {
+                    <tr><td colspan="6" class="text-center text-muted py-4">No past borrowings yet.</td></tr>
+                }
+                else
+                {
+                    @foreach (var h in history)
+                    {
+                        <tr data-filter-item data-title="@h.Title" data-author="@h.Author" data-genre="">
+                            <td class="fw-semibold">@h.Title</td>
+                            <td>@h.Author</td>
+                            <td>@h.BorrowedOn.ToString("dd MMM yyyy")</td>
+                            <td>@h.ReturnedOn.ToString("dd MMM yyyy")</td>
+                            <td>
+                                @if (h.WasLate)
+                                {
+                                    <span class="avail-pill soon">Returned late</span>
+                                }
+                                else
+                                {
+                                    <span class="avail-pill yes">On time</span>
+                                }
+                            </td>
+                            <td>@(h.FinePaid > 0 ? "₹" + h.FinePaid.ToString() : "—")</td>
+                        </tr>
+                    }
+                    <tr data-filter-empty style="display:none">
+                        <td colspan="6">
+                            <div class="empty-state border-0">
+                                <i class="bi bi-search"></i>
+                                No history entries match your search.
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<!--   Renew Loan confirm modal (filled from the clicked row's data-*)   -->
+<div class="modal fade" id="renewLoanModal" tabindex="-1" data-fillable
+     aria-labelledby="renewLoanModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form asp-controller="Account" asp-action="RenewLoan" method="post">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="renewLoanModalLabel">
+                        <i class="bi bi-arrow-repeat"></i>Renew Loan
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" data-field="id" />
+                    <input type="hidden" name="title" data-field="title" />
+                    <p class="mb-2">
+                        Renew <strong data-field="title"></strong> for another 14 days?
+                    </p>
+                    <p class="text-secondary mb-0">
+                        Current due date: <span data-field="due"></span>.
+                        Renewals are not allowed once a loan is overdue.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-arrow-repeat me-1"></i>Renew
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
