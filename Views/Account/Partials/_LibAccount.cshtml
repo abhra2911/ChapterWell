@@ -1,8 +1,8 @@
 @{
-    var libName  = "Librarian";
-    var libEmail = "lib@lib.org";
-    var libPhone = "";
-    var libId    = "LIB-0002";
+    var libName  = ViewData["ProfileName"]  as string ?? "";
+    var libEmail = ViewData["ProfileEmail"] as string ?? "";
+    var libPhone = ViewData["ProfilePhone"] as string ?? "";
+    var libId    = ViewData["ProfileCode"]  as string ?? "";
 
     var reopen    = TempData["ReopenModal"] as string;
     var formError = TempData["FormError"] as string;

@@ -2,12 +2,36 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Lib_Mgmt.Data;
 using Lib_Mgmt.Models;
 
 namespace Lib_Mgmt.Controllers
 {
     public class AccountController : Controller
     {
+        private readonly LibraryRepository _repo;
+
+        public AccountController(LibraryRepository repo)
+        {
+            _repo = repo;
+        }
+
+        // ---------------------------------------------------------------
+        // Auth guards. Each returns the current user id, or null + a redirect
+        // target when the session is missing / the wrong role.
+        // ---------------------------------------------------------------
+        private bool TryLibrarian(out int id)
+        {
+            id = CurrentUser.Id(HttpContext.Session);
+            return CurrentUser.IsLibrarian(HttpContext.Session) && id > 0;
+        }
+
+        private bool TryMember(out int id)
+        {
+            id = CurrentUser.Id(HttpContext.Session);
+            return CurrentUser.IsMember(HttpContext.Session) && id > 0;
+        }
+
         // GET: /Account/Login
         public IActionResult Login()
         {
@@ -18,18 +42,39 @@ namespace Lib_Mgmt.Controllers
         [HttpPost]
         public IActionResult Login(LoginViewModel model)
         {
-            if ((model.Username == "lib" || model.Username == "liberian") && model.Password == "123")
+            if (string.IsNullOrWhiteSpace(model.Username) || string.IsNullOrEmpty(model.Password))
             {
-                return RedirectToAction(nameof(LibrarianDashboard));
+                ViewBag.Error = "Please enter your username and password.";
+                return View();
             }
 
-            if (model.Username == "mem" && model.Password == "123")
+            var user = _repo.FindUserByUsername(model.Username.Trim());
+
+            // Verify against the stored bcrypt hash. BCrypt.Verify is constant-time
+            // and handles the $2a/$2b prefixes in the seed data.
+            bool ok = user != null
+                      && !string.IsNullOrEmpty(user.PasswordHash)
+                      && BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash);
+
+            if (!ok)
             {
-                return RedirectToAction(nameof(MemberDashboard));
+                ViewBag.Error = "Invalid username or password.";
+                return View();
             }
 
-            ViewBag.Error = "Invalid username or password.";
-            return View();
+            CurrentUser.SignIn(HttpContext.Session, user.UserId, user.Role,
+                               user.FullName, user.Username, user.Code);
+
+            return user.Role == "LIBRARIAN"
+                ? RedirectToAction(nameof(LibrarianDashboard))
+                : RedirectToAction(nameof(MemberDashboard));
+        }
+
+        // GET: /Account/Logout
+        public IActionResult Logout()
+        {
+            CurrentUser.SignOut(HttpContext.Session);
+            return RedirectToAction(nameof(Login));
         }
 
         // ===============================================================
@@ -39,100 +84,33 @@ namespace Lib_Mgmt.Controllers
         // GET: /Account/LibrarianDashboard
         public IActionResult LibrarianDashboard()
         {
+            if (!TryLibrarian(out _)) return RedirectToAction(nameof(Login));
+
             ViewData["ActiveSection"] = "lib-dashboard";
-
-            var model = new LibrarianDashboardViewModel
-            {
-                TotalMembers = 50,
-                TotalTitles = 134,
-                TotalCopiesAvailable = 412,
-                BooksBorrowed = 7,
-                OverdueCount = 3,
-                NewMembersThisMonth = 5,
-                TotalFinesDue = 120m,
-                CopiesAvailable = 412,
-                CopiesBorrowed = 7,
-                CopiesOverdue = 3,
-                CopiesDamaged = 8,
-
-                BorrowingsPerMonth = new List<MonthlyCount>
-                {
-                    new MonthlyCount { Month = "Dec 2025", Count = 18 },
-                    new MonthlyCount { Month = "Jan 2026", Count = 24 },
-                    new MonthlyCount { Month = "Feb 2026", Count = 20 },
-                    new MonthlyCount { Month = "Mar 2026", Count = 31 },
-                    new MonthlyCount { Month = "Apr 2026", Count = 27 },
-                    new MonthlyCount { Month = "May 2026", Count = 14 },
-                },
-
-                FinesPerMonth = new List<MonthlyAmount>
-                {
-                    new MonthlyAmount { Month = "Dec 2025", Amount = 80m  },
-                    new MonthlyAmount { Month = "Jan 2026", Amount = 145m },
-                    new MonthlyAmount { Month = "Feb 2026", Amount = 95m  },
-                    new MonthlyAmount { Month = "Mar 2026", Amount = 200m },
-                    new MonthlyAmount { Month = "Apr 2026", Amount = 160m },
-                    new MonthlyAmount { Month = "May 2026", Amount = 70m  },
-                },
-
-                TopBorrowedBooks = new List<BookBorrowCount>
-                {
-                    new BookBorrowCount { Title = "Clean Code",               Count = 42 },
-                    new BookBorrowCount { Title = "Computer Networks",        Count = 35 },
-                    new BookBorrowCount { Title = "OS Concepts",              Count = 30 },
-                    new BookBorrowCount { Title = "The Pragmatic Programmer", Count = 28 },
-                    new BookBorrowCount { Title = "DBMS by Navathe",          Count = 21 },
-                },
-                OverdueBorrowings = new List<OverdueBorrowing>
-                {
-                    new OverdueBorrowing
-                    {
-                        MemberName = "User",
-                        MemberId   = "MEM-00102",
-                        BookTitle  = "Clean Code",
-                        BorrowedOn = new DateTime(2026, 5, 10),
-                        DueDate    = new DateTime(2026, 5, 24)
-                    },
-                    new OverdueBorrowing
-                    {
-                        MemberName = "User1",
-                        MemberId   = "MEM-00108",
-                        BookTitle  = "The Pragmatic Programmer",
-                        BorrowedOn = new DateTime(2026, 5, 12),
-                        DueDate    = new DateTime(2026, 5, 26)
-                    },
-                    new OverdueBorrowing
-                    {
-                        MemberName = "User2",
-                        MemberId   = "MEM-00115",
-                        BookTitle  = "Computer Networks",
-                        BorrowedOn = new DateTime(2026, 5,  8),
-                        DueDate    = new DateTime(2026, 5, 22)
-                    }
-                }
-            };
-
+            var model = _repo.GetLibrarianDashboard();
             return View("LibrarianPortal", model);
         }
 
         // GET: /Account/LibrarianAccount
         public IActionResult LibrarianAccount()
         {
+            if (!TryLibrarian(out var id)) return RedirectToAction(nameof(Login));
+
             ViewData["ActiveSection"] = "account";
+            LoadProfileIntoViewData("LIBRARIAN", id);
             return View("LibrarianPortal");
         }
 
         // GET: /Account/LibrarianBooks
         public IActionResult LibrarianBooks()
         {
-            ViewData["ActiveSection"] = "books";
+            if (!TryLibrarian(out _)) return RedirectToAction(nameof(Login));
 
-            // TODO(Oracle): replace SampleCatalog() with a query over the BOOKS table,
-            //               and SampleDamagedBooks() with a query over the damage-reports table.
+            ViewData["ActiveSection"] = "books";
             var model = new LibrarianBooksViewModel
             {
-                Books = SampleCatalog(),
-                Damaged = SampleDamagedBooks()
+                Books = _repo.GetCatalog(),
+                Damaged = _repo.GetDamagedBooks()
             };
             return View("LibrarianPortal", model);
         }
@@ -140,32 +118,12 @@ namespace Lib_Mgmt.Controllers
         // GET: /Account/LibrarianMembers
         public IActionResult LibrarianMembers()
         {
-            ViewData["ActiveSection"] = "members";
+            if (!TryLibrarian(out _)) return RedirectToAction(nameof(Login));
 
-            // TODO(Oracle): replace with a join over MEMBERS + BORROWINGS + BOOKS.
+            ViewData["ActiveSection"] = "members";
             var model = new LibrarianMembersViewModel
             {
-                Borrowings = new List<MemberBorrowingRow>
-                {
-                    new MemberBorrowingRow
-                    {
-                        MemberName = "User",  MemberId = "MEM-00102", Email = "user@lib.org",
-                        BookTitle = "Clean Code",
-                        BorrowedOn = new DateTime(2026, 5, 10), DueDate = new DateTime(2026, 5, 24)
-                    },
-                    new MemberBorrowingRow
-                    {
-                        MemberName = "User1", MemberId = "MEM-00108", Email = "user1@lib.org",
-                        BookTitle = "Operating System Concepts",
-                        BorrowedOn = new DateTime(2026, 6, 3), DueDate = new DateTime(2026, 6, 30)
-                    },
-                    new MemberBorrowingRow
-                    {
-                        MemberName = "User2", MemberId = "MEM-00115", Email = "user2@lib.org",
-                        BookTitle = "Computer Networks",
-                        BorrowedOn = new DateTime(2026, 5, 8), DueDate = new DateTime(2026, 5, 22)
-                    }
-                }
+                Borrowings = _repo.GetMemberBorrowings()
             };
             return View("LibrarianPortal", model);
         }
@@ -173,14 +131,13 @@ namespace Lib_Mgmt.Controllers
         // GET: /Account/LibrarianBorrowings
         public IActionResult LibrarianBorrowings()
         {
-            ViewData["ActiveSection"] = "borrowings";
+            if (!TryLibrarian(out _)) return RedirectToAction(nameof(Login));
 
-            // TODO(Oracle): load active loans (RETURN_DATE IS NULL) joined with
-            // MEMBERS + BOOKS, and the list of books that still have free copies.
+            ViewData["ActiveSection"] = "borrowings";
             var model = new LibrarianBorrowingsViewModel
             {
-                Active = SampleActiveBorrowings(),
-                IssuableBooks = SampleCatalog().Where(b => b.AvailableCopies > 0).ToList()
+                Active = _repo.GetActiveBorrowings(),
+                IssuableBooks = _repo.GetCatalog().Where(b => b.AvailableCopies > 0).ToList()
             };
             return View("LibrarianPortal", model);
         }
@@ -194,6 +151,8 @@ namespace Lib_Mgmt.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult EditLibrarianProfile(EditProfileViewModel model)
         {
+            if (!TryLibrarian(out var id)) return RedirectToAction(nameof(Login));
+
             if (!ModelState.IsValid)
             {
                 TempData["FormError"] = FirstError();
@@ -201,7 +160,7 @@ namespace Lib_Mgmt.Controllers
                 return RedirectToAction(nameof(LibrarianAccount));
             }
 
-            // TODO(Oracle): persist the updated profile.
+            _repo.UpdateProfile("LIBRARIAN", id, model.Name, model.Email, model.Phone);
             TempData["Success"] = "Profile updated successfully.";
             return RedirectToAction(nameof(LibrarianAccount));
         }
@@ -211,6 +170,8 @@ namespace Lib_Mgmt.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult ChangeLibrarianPassword(ChangePasswordViewModel model)
         {
+            if (!TryLibrarian(out var id)) return RedirectToAction(nameof(Login));
+
             if (!ModelState.IsValid)
             {
                 TempData["FormError"] = FirstError();
@@ -218,7 +179,13 @@ namespace Lib_Mgmt.Controllers
                 return RedirectToAction(nameof(LibrarianAccount));
             }
 
-            // TODO(Oracle): verify current password, store the new hash.
+            if (!ChangePassword("LIBRARIAN", id, model))
+            {
+                TempData["FormError"] = "Your current password is incorrect.";
+                TempData["ReopenModal"] = "changePasswordModal";
+                return RedirectToAction(nameof(LibrarianAccount));
+            }
+
             TempData["Success"] = "Password changed successfully.";
             return RedirectToAction(nameof(LibrarianAccount));
         }
@@ -228,6 +195,8 @@ namespace Lib_Mgmt.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult AddBook(AddBookViewModel model)
         {
+            if (!TryLibrarian(out _)) return RedirectToAction(nameof(Login));
+
             if (!ModelState.IsValid)
             {
                 TempData["FormError"] = FirstError();
@@ -235,8 +204,8 @@ namespace Lib_Mgmt.Controllers
                 return RedirectToAction(nameof(LibrarianBooks));
             }
 
-            // TODO(Oracle): INSERT INTO BOOKS (...).
-            TempData["Success"] = $"\"{model.Title}\" added to the catalog.";
+            var title = _repo.AddBook(model);
+            TempData["Success"] = $"\"{title}\" added to the catalog.";
             return RedirectToAction(nameof(LibrarianBooks));
         }
 
@@ -245,6 +214,8 @@ namespace Lib_Mgmt.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult EditBook(EditBookViewModel model)
         {
+            if (!TryLibrarian(out _)) return RedirectToAction(nameof(Login));
+
             if (!ModelState.IsValid)
             {
                 TempData["FormError"] = FirstError();
@@ -252,7 +223,7 @@ namespace Lib_Mgmt.Controllers
                 return RedirectToAction(nameof(LibrarianBooks));
             }
 
-            // TODO(Oracle): UPDATE BOOKS SET ... WHERE ID = @model.Id.
+            _repo.EditBook(model);
             TempData["Success"] = $"\"{model.Title}\" was updated.";
             return RedirectToAction(nameof(LibrarianBooks));
         }
@@ -262,6 +233,8 @@ namespace Lib_Mgmt.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteBook(int id, string title)
         {
+            if (!TryLibrarian(out _)) return RedirectToAction(nameof(Login));
+
             if (id <= 0)
             {
                 TempData["FormError"] = "Could not identify the book to delete.";
@@ -269,20 +242,32 @@ namespace Lib_Mgmt.Controllers
                 return RedirectToAction(nameof(LibrarianBooks));
             }
 
-            // TODO(Oracle): DELETE FROM BOOKS WHERE ID = @id (guard against active loans).
-            TempData["Success"] = string.IsNullOrEmpty(title)
-                ? "Book removed from the catalog."
-                : $"\"{title}\" was removed from the catalog.";
+            var label = string.IsNullOrEmpty(title) ? "The book" : $"\"{title}\"";
+            switch (_repo.DeleteBook(id))
+            {
+                case LibraryRepository.DeleteResult.Deleted:
+                    TempData["Success"] = $"{label} was removed from the catalog.";
+                    break;
+                case LibraryRepository.DeleteResult.HasActiveLoans:
+                    TempData["FormError"] = $"{label} still has active loans and can't be removed.";
+                    break;
+                case LibraryRepository.DeleteResult.HasHistory:
+                    TempData["FormError"] = $"{label} has loan history and can't be deleted (consider setting copies to 0 instead).";
+                    break;
+                default:
+                    TempData["FormError"] = "That book no longer exists.";
+                    break;
+            }
             return RedirectToAction(nameof(LibrarianBooks));
         }
 
         // POST: /Account/ReportDamage
-        // Logs a new damage report and (when wired) reduces the book's
-        // AVAILABLE_COPIES by the damaged count.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ReportDamage(int bookId, int damagedCopies, string reason)
         {
+            if (!TryLibrarian(out var libId)) return RedirectToAction(nameof(Login));
+
             if (bookId <= 0 || damagedCopies <= 0)
             {
                 TempData["FormError"] = "Please pick a book and enter a valid copy count.";
@@ -290,10 +275,7 @@ namespace Lib_Mgmt.Controllers
                 return RedirectToAction(nameof(LibrarianBooks));
             }
 
-            // TODO(Oracle): INSERT INTO BOOK_DAMAGES (BOOK_ID, COPIES, REASON, REPORTED_DATE, REPORTED_BY)
-            //               and UPDATE BOOKS SET AVAILABLE_COPIES = AVAILABLE_COPIES - @damagedCopies
-            //               (floor at 0; do not reduce below 0).
-            var title = SampleCatalog().FirstOrDefault(b => b.Id == bookId)?.Title;
+            var title = _repo.ReportDamage(bookId, damagedCopies, reason, libId);
             TempData["Success"] = string.IsNullOrEmpty(title)
                 ? $"Damage logged: {damagedCopies} copy/copies."
                 : $"Damage logged: {damagedCopies} copy/copies of \"{title}\".";
@@ -305,6 +287,8 @@ namespace Lib_Mgmt.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult IssueBook(IssueBookViewModel model)
         {
+            if (!TryLibrarian(out _)) return RedirectToAction(nameof(Login));
+
             if (!ModelState.IsValid)
             {
                 TempData["FormError"] = FirstError();
@@ -312,12 +296,27 @@ namespace Lib_Mgmt.Controllers
                 return RedirectToAction(nameof(LibrarianBorrowings));
             }
 
-            // TODO(Oracle): INSERT INTO BORROWINGS (MEMBER_ID, BOOK_ID, ISSUE_DATE, DUE_DATE)
-            //               and decrement BOOKS.AVAILABLE_COPIES for @model.BookId.
-            var title = SampleCatalog().FirstOrDefault(b => b.Id == model.BookId)?.Title;
-            TempData["Success"] = string.IsNullOrEmpty(title)
-                ? $"Book issued to {model.MemberId}."
-                : $"\"{title}\" issued to {model.MemberId}.";
+            var result = _repo.IssueBook(model.MemberId, model.BookId, model.DueDate, out var title);
+            switch (result)
+            {
+                case LibraryRepository.IssueResult.Ok:
+                    TempData["Success"] = string.IsNullOrEmpty(title)
+                        ? $"Book issued to {model.MemberId}."
+                        : $"\"{title}\" issued to {model.MemberId}.";
+                    break;
+                case LibraryRepository.IssueResult.MemberNotFound:
+                    TempData["FormError"] = $"No active member with ID {model.MemberId}.";
+                    TempData["ReopenModal"] = "issueBookModal";
+                    break;
+                case LibraryRepository.IssueResult.NoCopies:
+                    TempData["FormError"] = "That title has no available copies right now.";
+                    TempData["ReopenModal"] = "issueBookModal";
+                    break;
+                default:
+                    TempData["FormError"] = "That book could not be found.";
+                    TempData["ReopenModal"] = "issueBookModal";
+                    break;
+            }
             return RedirectToAction(nameof(LibrarianBorrowings));
         }
 
@@ -326,6 +325,8 @@ namespace Lib_Mgmt.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult ReturnBook(int id, string title)
         {
+            if (!TryLibrarian(out _)) return RedirectToAction(nameof(Login));
+
             if (id <= 0)
             {
                 TempData["FormError"] = "Could not identify the borrowing to return.";
@@ -333,12 +334,17 @@ namespace Lib_Mgmt.Controllers
                 return RedirectToAction(nameof(LibrarianBorrowings));
             }
 
-            // TODO(Oracle): UPDATE BORROWINGS SET RETURN_DATE = SYSDATE, STATUS = 'RETURNED'
-            //               WHERE BORROWING_ID = @id; increment BOOKS.AVAILABLE_COPIES;
-            //               settle any outstanding fine attached to this loan.
-            TempData["Success"] = string.IsNullOrEmpty(title)
-                ? "Book marked as returned."
-                : $"\"{title}\" marked as returned.";
+            var ok = _repo.ReturnBook(id);
+            if (ok)
+            {
+                TempData["Success"] = string.IsNullOrEmpty(title)
+                    ? "Book marked as returned."
+                    : $"\"{title}\" marked as returned.";
+            }
+            else
+            {
+                TempData["FormError"] = "That loan was already returned or no longer exists.";
+            }
             return RedirectToAction(nameof(LibrarianBorrowings));
         }
 
@@ -349,75 +355,33 @@ namespace Lib_Mgmt.Controllers
         // GET: /Account/MemberDashboard
         public IActionResult MemberDashboard()
         {
+            if (!TryMember(out var id)) return RedirectToAction(nameof(Login));
+
             ViewData["ActiveSection"] = "dashboard";
-
-            var loans = new List<MemberLoan>
-            {
-                new MemberLoan
-                {
-                    Title      = "Clean Code",
-                    BorrowedOn = new DateTime(2026, 5, 10),
-                    DueDate    = new DateTime(2026, 5, 24)
-                },
-                new MemberLoan
-                {
-                    Title      = "Operating System Concepts",
-                    BorrowedOn = new DateTime(2026, 5, 22),
-                    DueDate    = new DateTime(2026, 6, 5)
-                }
-            };
-
-            var model = new MemberDashboardViewModel
-            {
-                MemberName = "User",
-                ActiveLoans = loans,
-                CurrentlyBorrowed = loans.Count,
-                OverdueCount = loans.Count(l => l.DaysOverdue > 0),
-                FineDue = loans.Sum(l => l.Fine),
-
-                // Set CoverImage per row (e.g. "/images/covers/{isbn}.jpg");
-                // when left empty the view falls back to placeholder-cover.svg.
-                TopBooks = new List<TopBook>
-                {
-                    new TopBook { Title = "Clean Code",                             Author = "Robert C. Martin",      Isbn = "9780132350884", BorrowCount = 142, Available = true  },
-                    new TopBook { Title = "Introduction to Algorithms",             Author = "Cormen et al.",         Isbn = "9780262033848", BorrowCount = 128, Available = true  },
-                    new TopBook { Title = "Computer Networks",                      Author = "Andrew S. Tanenbaum",   Isbn = "9780132126953", BorrowCount = 119, Available = false },
-                    new TopBook { Title = "Operating System Concepts",             Author = "Silberschatz et al.",   Isbn = "9781118063330", BorrowCount = 110, Available = true  },
-                    new TopBook { Title = "The Pragmatic Programmer",              Author = "Hunt & Thomas",         Isbn = "9780201616224", BorrowCount = 103, Available = true  },
-                    new TopBook { Title = "Database System Concepts",              Author = "Silberschatz et al.",   Isbn = "9780073523323", BorrowCount = 97,  Available = false },
-                    new TopBook { Title = "Design Patterns",                       Author = "Gamma et al.",          Isbn = "9780201633610", BorrowCount = 89,  Available = true  },
-                    new TopBook { Title = "The C Programming Language",            Author = "Kernighan & Ritchie",   Isbn = "9780131103627", BorrowCount = 84,  Available = true  },
-                    new TopBook { Title = "Artificial Intelligence",               Author = "Russell & Norvig",      Isbn = "9780136042594", BorrowCount = 76,  Available = true  },
-                    new TopBook { Title = "Structure and Interpretation of Computer Programs", Author = "Abelson & Sussman", Isbn = "9780262011532", BorrowCount = 71, Available = false }
-                }
-            };
-
+            var model = _repo.GetMemberDashboard(id, CurrentUser.FullName(HttpContext.Session));
             return View("MemberPortal", model);
         }
 
         // GET: /Account/MemberAccount
         public IActionResult MemberAccount()
         {
+            if (!TryMember(out var id)) return RedirectToAction(nameof(Login));
+
             ViewData["ActiveSection"] = "account";
+            LoadProfileIntoViewData("MEMBER", id);
             return View("MemberPortal");
         }
 
         // GET: /Account/MemberBooks
         public IActionResult MemberBooks()
         {
-            ViewData["ActiveSection"] = "books";
+            if (!TryMember(out var id)) return RedirectToAction(nameof(Login));
 
-            // TODO(Oracle): replace SampleCatalog() with a query over the BOOKS table,
-            //               and SampleWishlist() with a query over the WISHLIST table for
-            //               the currently-signed-in member.
-            var wish = SampleWishlist();
+            ViewData["ActiveSection"] = "books";
             var model = new MemberBooksViewModel
             {
-                Books = SampleCatalog(),
-                WishlistedBookIds = new HashSet<int>(
-                    SampleCatalog()
-                        .Where(b => wish.Any(w => w.Isbn == b.Isbn))
-                        .Select(b => b.Id))
+                Books = _repo.GetCatalog(),
+                WishlistedBookIds = _repo.GetWishlistedBookIds(id)
             };
             return View("MemberPortal", model);
         }
@@ -425,17 +389,15 @@ namespace Lib_Mgmt.Controllers
         // GET: /Account/MemberLoans
         public IActionResult MemberLoans()
         {
-            ViewData["ActiveSection"] = "loans";
+            if (!TryMember(out var id)) return RedirectToAction(nameof(Login));
 
-            // TODO(Oracle): active = BORROWINGS WHERE MEMBER_ID = @me AND RETURN_DATE IS NULL;
-            //               history = BORROWINGS WHERE MEMBER_ID = @me AND RETURN_DATE IS NOT NULL;
-            //               fines = FINES WHERE MEMBER_ID = @me (paid + outstanding).
+            ViewData["ActiveSection"] = "loans";
             var model = new MemberLoansViewModel
             {
-                MemberName = "User",
-                Active = SampleActiveLoans(),
-                History = SampleLoanHistory(),
-                Fines = SampleFines()
+                MemberName = CurrentUser.FullName(HttpContext.Session),
+                Active = _repo.GetMemberActiveLoans(id),
+                History = _repo.GetMemberLoanHistory(id),
+                Fines = _repo.GetMemberFines(id)
             };
             return View("MemberPortal", model);
         }
@@ -443,24 +405,19 @@ namespace Lib_Mgmt.Controllers
         // GET: /Account/MemberWishlist
         public IActionResult MemberWishlist()
         {
-            ViewData["ActiveSection"] = "wishlist";
+            if (!TryMember(out var id)) return RedirectToAction(nameof(Login));
 
-            // TODO(Oracle): SELECT items from WISHLIST joined with BOOKS for this member.
-            var wish = SampleWishlist();
-            var onList = new HashSet<string>(wish.Select(w => w.Isbn));
+            ViewData["ActiveSection"] = "wishlist";
+            var items = _repo.GetMemberWishlist(id);
+            var onList = new HashSet<string>(items.Select(w => w.Isbn));
 
             var model = new MemberWishlistViewModel
             {
-                Items = wish,
-                AddableBooks = SampleCatalog().Where(b => !onList.Contains(b.Isbn)).ToList()
+                Items = items,
+                AddableBooks = _repo.GetCatalog().Where(b => !onList.Contains(b.Isbn)).ToList()
             };
             return View("MemberPortal", model);
         }
-
-        // NOTE: MemberFines used to be its own tab. It's now a section inside
-        // the Loans tab (see MemberLoans above), so the route is no longer
-        // exposed in the nav. The PayFine / PayAllFines POST handlers below
-        // redirect back to MemberLoans.
 
         // ---------------------------------------------------------------
         // Member — modal POST handlers
@@ -471,6 +428,8 @@ namespace Lib_Mgmt.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult EditMemberProfile(EditProfileViewModel model)
         {
+            if (!TryMember(out var id)) return RedirectToAction(nameof(Login));
+
             if (!ModelState.IsValid)
             {
                 TempData["FormError"] = FirstError();
@@ -478,7 +437,7 @@ namespace Lib_Mgmt.Controllers
                 return RedirectToAction(nameof(MemberAccount));
             }
 
-            // TODO(Oracle): persist the updated profile.
+            _repo.UpdateProfile("MEMBER", id, model.Name, model.Email, model.Phone);
             TempData["Success"] = "Profile updated successfully.";
             return RedirectToAction(nameof(MemberAccount));
         }
@@ -488,6 +447,8 @@ namespace Lib_Mgmt.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult ChangeMemberPassword(ChangePasswordViewModel model)
         {
+            if (!TryMember(out var id)) return RedirectToAction(nameof(Login));
+
             if (!ModelState.IsValid)
             {
                 TempData["FormError"] = FirstError();
@@ -495,44 +456,38 @@ namespace Lib_Mgmt.Controllers
                 return RedirectToAction(nameof(MemberAccount));
             }
 
-            // TODO(Oracle): verify current password, store the new hash.
+            if (!ChangePassword("MEMBER", id, model))
+            {
+                TempData["FormError"] = "Your current password is incorrect.";
+                TempData["ReopenModal"] = "changePasswordModal";
+                return RedirectToAction(nameof(MemberAccount));
+            }
+
             TempData["Success"] = "Password changed successfully.";
             return RedirectToAction(nameof(MemberAccount));
         }
 
         // POST: /Account/ToggleWishlist
-        // Posted by the bookmark button on each book card in the Books tab.
-        // Adds the book if not already on the wishlist, removes it otherwise.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ToggleWishlist(int bookId)
         {
+            if (!TryMember(out var id)) return RedirectToAction(nameof(Login));
+
             if (bookId <= 0)
             {
                 TempData["FormError"] = "Could not identify the book.";
                 return RedirectToAction(nameof(MemberBooks));
             }
 
-            // TODO(Oracle):
-            //   IF EXISTS(SELECT 1 FROM WISHLIST WHERE MEMBER_ID=@me AND BOOK_ID=@bookId)
-            //     THEN DELETE the row
-            //     ELSE INSERT a new row
-            //   The unique(MEMBER_ID, BOOK_ID) constraint guards against races.
-            var book = SampleCatalog().FirstOrDefault(b => b.Id == bookId);
-            var alreadyWishlisted = SampleWishlist().Any(w => book != null && w.Isbn == book.Isbn);
-
-            if (book == null)
-            {
-                TempData["Success"] = "Wishlist updated.";
-            }
-            else if (alreadyWishlisted)
-            {
-                TempData["Success"] = $"\"{book.Title}\" removed from your wishlist.";
-            }
+            var result = _repo.ToggleWishlist(id, bookId, out var title);
+            if (result == LibraryRepository.WishlistToggle.Removed)
+                TempData["Success"] = $"\"{title}\" removed from your wishlist.";
+            else if (result == LibraryRepository.WishlistToggle.Added)
+                TempData["Success"] = $"\"{title}\" added to your wishlist.";
             else
-            {
-                TempData["Success"] = $"\"{book.Title}\" added to your wishlist.";
-            }
+                TempData["Success"] = "Wishlist updated.";
+
             return RedirectToAction(nameof(MemberBooks));
         }
 
@@ -541,6 +496,8 @@ namespace Lib_Mgmt.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult AddToWishlist(int bookId)
         {
+            if (!TryMember(out var id)) return RedirectToAction(nameof(Login));
+
             if (bookId <= 0)
             {
                 TempData["FormError"] = "Please choose a book to add.";
@@ -548,9 +505,7 @@ namespace Lib_Mgmt.Controllers
                 return RedirectToAction(nameof(MemberWishlist));
             }
 
-            // TODO(Oracle): INSERT INTO WISHLIST (MEMBER_ID, BOOK_ID, ADDED_DATE)
-            //               (let a unique constraint guard against duplicates).
-            var title = SampleCatalog().FirstOrDefault(b => b.Id == bookId)?.Title;
+            var title = _repo.AddToWishlist(id, bookId);
             TempData["Success"] = string.IsNullOrEmpty(title)
                 ? "Added to your wishlist."
                 : $"\"{title}\" added to your wishlist.";
@@ -562,7 +517,9 @@ namespace Lib_Mgmt.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult RemoveFromWishlist(int id, string title)
         {
-            // TODO(Oracle): DELETE FROM WISHLIST WHERE WISHLIST_ID = @id AND MEMBER_ID = @me.
+            if (!TryMember(out var memberId)) return RedirectToAction(nameof(Login));
+
+            _repo.RemoveFromWishlist(id, memberId);
             TempData["Success"] = string.IsNullOrEmpty(title)
                 ? "Removed from your wishlist."
                 : $"\"{title}\" removed from your wishlist.";
@@ -574,11 +531,19 @@ namespace Lib_Mgmt.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult RenewLoan(int id, string title)
         {
-            // TODO(Oracle): UPDATE BORROWINGS SET DUE_DATE = DUE_DATE + 14 WHERE BORROWING_ID = @id
-            //               (reject if the loan is overdue or the title is reserved by someone else).
-            TempData["Success"] = string.IsNullOrEmpty(title)
-                ? "Loan renewed for 14 more days."
-                : $"\"{title}\" renewed for 14 more days.";
+            if (!TryMember(out var memberId)) return RedirectToAction(nameof(Login));
+
+            var renewed = _repo.RenewLoan(id, memberId);
+            if (renewed)
+            {
+                TempData["Success"] = string.IsNullOrEmpty(title)
+                    ? "Loan renewed for 14 more days."
+                    : $"\"{title}\" renewed for 14 more days.";
+            }
+            else
+            {
+                TempData["FormError"] = "This loan can't be renewed (it may be overdue or already returned).";
+            }
             return RedirectToAction(nameof(MemberLoans));
         }
 
@@ -587,7 +552,9 @@ namespace Lib_Mgmt.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult PayFine(int id, string book)
         {
-            // TODO(Oracle): UPDATE FINES SET PAID_DATE = SYSDATE WHERE FINE_ID = @id AND MEMBER_ID = @me.
+            if (!TryMember(out var memberId)) return RedirectToAction(nameof(Login));
+
+            _repo.PayFine(id, memberId);
             TempData["Success"] = string.IsNullOrEmpty(book)
                 ? "Fine paid. Thank you!"
                 : $"Fine for \"{book}\" paid. Thank you!";
@@ -599,16 +566,11 @@ namespace Lib_Mgmt.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult PayAllFines()
         {
-            // TODO(Oracle): UPDATE FINES SET PAID_DATE = SYSDATE
-            //               WHERE MEMBER_ID = @me AND PAID_DATE IS NULL.
+            if (!TryMember(out var memberId)) return RedirectToAction(nameof(Login));
+
+            _repo.PayAllFines(memberId);
             TempData["Success"] = "All outstanding fines paid. Thank you!";
             return RedirectToAction(nameof(MemberLoans));
-        }
-
-        // GET: /Account/Logout
-        public IActionResult Logout()
-        {
-            return RedirectToAction(nameof(Login));
         }
 
         // ---------------------------------------------------------------
@@ -622,94 +584,25 @@ namespace Lib_Mgmt.Controllers
                 .FirstOrDefault() ?? "Please correct the errors and try again.";
         }
 
-        /// <summary>
-        /// Sample catalog used by both Books pages until Oracle is connected.
-        /// TODO(Oracle): delete this and load CatalogBook rows from the database.
-        /// </summary>
-        private static List<CatalogBook> SampleCatalog()
+        private void LoadProfileIntoViewData(string role, int userId)
         {
-            return new List<CatalogBook>
-            {
-                new CatalogBook { Id = 1, Title = "Clean Code", Author = "Robert C. Martin", Genre = "Programming", Isbn = "9780132350884", Publisher = "Prentice Hall", PublishedYear = 2008, Quantity = 12, AvailableCopies = 5 },
-                new CatalogBook { Id = 2, Title = "The Pragmatic Programmer", Author = "Hunt & Thomas", Genre = "Programming", Isbn = "9780201616224", Publisher = "Addison-Wesley", PublishedYear = 1999, Quantity = 8, AvailableCopies = 0 },
-                new CatalogBook { Id = 3, Title = "Computer Networks", Author = "Andrew S. Tanenbaum", Genre = "Networking", Isbn = "9780132126953", Publisher = "Pearson", PublishedYear = 2010, Quantity = 19, AvailableCopies = 7 },
-                new CatalogBook { Id = 4, Title = "Operating System Concepts", Author = "Silberschatz et al.", Genre = "Operating Systems", Isbn = "9781118063330", Publisher = "Wiley", PublishedYear = 2012, Quantity = 14, AvailableCopies = 3 },
-                new CatalogBook { Id = 5, Title = "Introduction to Algorithms", Author = "Cormen et al.", Genre = "Algorithms", Isbn = "9780262033848", Publisher = "MIT Press", PublishedYear = 2009, Quantity = 10, AvailableCopies = 6 },
-                new CatalogBook { Id = 6, Title = "Database System Concepts", Author = "Silberschatz et al.", Genre = "Database", Isbn = "9780073523323", Publisher = "McGraw-Hill", PublishedYear = 2010, Quantity = 9, AvailableCopies = 0 },
-                new CatalogBook { Id = 7, Title = "Design Patterns", Author = "Gamma et al.", Genre = "Programming", Isbn = "9780201633610", Publisher = "Addison-Wesley", PublishedYear = 1994, Quantity = 7, AvailableCopies = 4 },
-                new CatalogBook { Id = 8, Title = "The C Programming Language", Author = "Kernighan & Ritchie", Genre = "Programming", Isbn = "9780131103627", Publisher = "Prentice Hall", PublishedYear = 1988, Quantity = 11, AvailableCopies = 2 },
-                new CatalogBook { Id = 9, Title = "Artificial Intelligence: A Modern Approach", Author = "Russell & Norvig", Genre = "AI", Isbn = "9780136042594", Publisher = "Pearson", PublishedYear = 2009, Quantity = 6, AvailableCopies = 1 },
-                new CatalogBook { Id = 10, Title = "Structure and Interpretation of Computer Programs", Author = "Abelson & Sussman", Genre = "Programming", Isbn = "9780262011532", Publisher = "MIT Press", PublishedYear = 1996, Quantity = 5, AvailableCopies = 0 }
-            };
+            var p = _repo.GetProfile(role, userId);
+            ViewData["ProfileName"] = p.FullName;
+            ViewData["ProfileEmail"] = p.Email;
+            ViewData["ProfilePhone"] = p.Phone;
+            ViewData["ProfileCode"] = p.Code;
         }
 
-        // ---------------------------------------------------------------
-        // Sample data for the Borrowings / Loans / Wishlist / Fines tabs.
-        // TODO(Oracle): delete all of these once the database is connected.
-        // ---------------------------------------------------------------
-
-        private static List<ActiveBorrowingRow> SampleActiveBorrowings()
+        /// <summary>Verifies the current password, then stores a fresh bcrypt hash.</summary>
+        private bool ChangePassword(string role, int userId, ChangePasswordViewModel model)
         {
-            return new List<ActiveBorrowingRow>
-            {
-                new ActiveBorrowingRow { BorrowingId = 5001, MemberName = "User",  MemberId = "MEM-00102", BookTitle = "Clean Code",                 Isbn = "9780132350884", BorrowedOn = new DateTime(2026, 5, 10), DueDate = new DateTime(2026, 5, 24) },
-                new ActiveBorrowingRow { BorrowingId = 5002, MemberName = "User1", MemberId = "MEM-00108", BookTitle = "Operating System Concepts",  Isbn = "9781118063330", BorrowedOn = new DateTime(2026, 6,  3), DueDate = new DateTime(2026, 6, 30) },
-                new ActiveBorrowingRow { BorrowingId = 5003, MemberName = "User2", MemberId = "MEM-00115", BookTitle = "Computer Networks",          Isbn = "9780132126953", BorrowedOn = new DateTime(2026, 5,  8), DueDate = new DateTime(2026, 5, 22) },
-                new ActiveBorrowingRow { BorrowingId = 5004, MemberName = "User3", MemberId = "MEM-00121", BookTitle = "Introduction to Algorithms", Isbn = "9780262033848", BorrowedOn = new DateTime(2026, 6,  9), DueDate = new DateTime(2026, 6, 23) }
-            };
-        }
+            var hash = _repo.GetPasswordHash(role, userId);
+            if (string.IsNullOrEmpty(hash) || !BCrypt.Net.BCrypt.Verify(model.CurrentPassword, hash))
+                return false;
 
-        private static List<DetailedLoan> SampleActiveLoans()
-        {
-            return new List<DetailedLoan>
-            {
-                new DetailedLoan { BorrowingId = 5001, Title = "Clean Code",                Author = "Robert C. Martin",   Isbn = "9780132350884", BorrowedOn = new DateTime(2026, 5, 10), DueDate = new DateTime(2026, 5, 24) },
-                new DetailedLoan { BorrowingId = 5005, Title = "Operating System Concepts", Author = "Silberschatz et al.", Isbn = "9781118063330", BorrowedOn = new DateTime(2026, 5, 22), DueDate = new DateTime(2026, 6, 16) },
-                new DetailedLoan { BorrowingId = 5006, Title = "Design Patterns",           Author = "Gamma et al.",       Isbn = "9780201633610", BorrowedOn = new DateTime(2026, 6,  4), DueDate = new DateTime(2026, 6, 18) }
-            };
-        }
-
-        private static List<LoanHistoryRow> SampleLoanHistory()
-        {
-            return new List<LoanHistoryRow>
-            {
-                new LoanHistoryRow { Title = "The Pragmatic Programmer",   Author = "Hunt & Thomas",       BorrowedOn = new DateTime(2026, 3,  2), ReturnedOn = new DateTime(2026, 3, 15), FinePaid = 0m,  WasLate = false },
-                new LoanHistoryRow { Title = "The C Programming Language", Author = "Kernighan & Ritchie", BorrowedOn = new DateTime(2026, 2, 10), ReturnedOn = new DateTime(2026, 3,  1), FinePaid = 18m, WasLate = true  },
-                new LoanHistoryRow { Title = "Database System Concepts",   Author = "Silberschatz et al.", BorrowedOn = new DateTime(2026, 1, 18), ReturnedOn = new DateTime(2026, 2,  1), FinePaid = 0m,  WasLate = false },
-                new LoanHistoryRow { Title = "Artificial Intelligence",    Author = "Russell & Norvig",    BorrowedOn = new DateTime(2025, 12, 5), ReturnedOn = new DateTime(2025, 12, 28), FinePaid = 12m, WasLate = true }
-            };
-        }
-
-        private static List<WishlistItem> SampleWishlist()
-        {
-            return new List<WishlistItem>
-            {
-                new WishlistItem { Id = 9001, Title = "Introduction to Algorithms", Author = "Cormen et al.",       Isbn = "9780262033848", Genre = "Algorithms", Available = true,  AddedOn = new DateTime(2026, 6,  1) },
-                new WishlistItem { Id = 9002, Title = "Database System Concepts",   Author = "Silberschatz et al.", Isbn = "9780073523323", Genre = "Database",   Available = false, AddedOn = new DateTime(2026, 5, 28) },
-                new WishlistItem { Id = 9003, Title = "Artificial Intelligence",    Author = "Russell & Norvig",    Isbn = "9780136042594", Genre = "AI",         Available = true,  AddedOn = new DateTime(2026, 5, 20) }
-            };
-        }
-
-        private static List<FineRecord> SampleFines()
-        {
-            return new List<FineRecord>
-            {
-                new FineRecord { Id = 7001, BookTitle = "Clean Code",                 Reason = "Overdue (6 days)", Amount = 30m, IssuedOn = new DateTime(2026, 5, 30),  PaidOn = null },
-                new FineRecord { Id = 7002, BookTitle = "Computer Networks",          Reason = "Overdue (3 days)", Amount = 15m, IssuedOn = new DateTime(2026, 5, 25),  PaidOn = null },
-                new FineRecord { Id = 7003, BookTitle = "The C Programming Language", Reason = "Overdue (9 days)", Amount = 18m, IssuedOn = new DateTime(2026, 3,  1),  PaidOn = new DateTime(2026, 3,  3) },
-                new FineRecord { Id = 7004, BookTitle = "Artificial Intelligence",    Reason = "Overdue (6 days)", Amount = 12m, IssuedOn = new DateTime(2025, 12, 28), PaidOn = new DateTime(2025, 12, 29) }
-            };
-        }
-
-        private static List<DamagedBookEntry> SampleDamagedBooks()
-        {
-            return new List<DamagedBookEntry>
-            {
-                new DamagedBookEntry { Id = 8001, BookId = 1, Title = "Clean Code",                Author = "Robert C. Martin",   Isbn = "9780132350884", DamagedCopies = 2, Reason = "Water damage from spilled coffee", ReportedOn = new DateTime(2026, 4, 15), ReportedBy = "Library Admin" },
-                new DamagedBookEntry { Id = 8002, BookId = 3, Title = "Computer Networks",         Author = "Andrew S. Tanenbaum",Isbn = "9780132126953", DamagedCopies = 1, Reason = "Torn binding",                     ReportedOn = new DateTime(2026, 5,  2), ReportedBy = "Library Admin" },
-                new DamagedBookEntry { Id = 8003, BookId = 5, Title = "Introduction to Algorithms",Author = "Cormen et al.",      Isbn = "9780262033848", DamagedCopies = 3, Reason = "Pages missing (chapter 22)",       ReportedOn = new DateTime(2026, 5, 20), ReportedBy = "Library Admin" },
-                new DamagedBookEntry { Id = 8004, BookId = 8, Title = "The C Programming Language",Author = "Kernighan & Ritchie",Isbn = "9780131103627", DamagedCopies = 2, Reason = "Cover detached",                   ReportedOn = new DateTime(2026, 6,  8), ReportedBy = "Library Admin" }
-            };
+            var newHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+            _repo.UpdatePasswordHash(role, userId, newHash);
+            return true;
         }
     }
 }

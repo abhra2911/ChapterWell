@@ -1,8 +1,8 @@
 @{
-    var memName  = "User";
-    var memEmail = "user@lib.org";
-    var memPhone = "";
-    var memId    = "MEM-00102";
+    var memName  = ViewData["ProfileName"]  as string ?? "";
+    var memEmail = ViewData["ProfileEmail"] as string ?? "";
+    var memPhone = ViewData["ProfilePhone"] as string ?? "";
+    var memId    = ViewData["ProfileCode"]  as string ?? "";
 
     var reopen    = TempData["ReopenModal"] as string;
     var formError = TempData["FormError"] as string;
