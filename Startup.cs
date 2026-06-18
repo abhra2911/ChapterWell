@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using Lib_Mgmt.Data;
+using Oracle.EntityFrameworkCore;
 
 namespace Lib_Mgmt
 {
@@ -28,6 +30,11 @@ namespace Lib_Mgmt
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
             });
+
+            // EF Core 2.1 over Oracle (Oracle.EntityFrameworkCore). The context
+            // is registered scoped (one per request); the repository wraps it.
+            services.AddDbContext<LibraryDbContext>(options =>
+                options.UseOracle(Configuration.GetConnectionString("LibraryDb")).EnableSensitiveDataLogging());    //ADDED LOGGING METHOD
 
             // One repository instance per request.
             services.AddScoped<LibraryRepository>();
