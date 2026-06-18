@@ -11,10 +11,6 @@
 <hr />
 
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-    <button type="button" class="btn btn-primary"
-            data-bs-toggle="modal" data-bs-target="#addWishlistModal">
-        <i class="bi bi-heart me-1"></i>Add to Wishlist
-    </button>
     <span class="result-count" data-filter-count>@items.Count saved</span>
 </div>
 
@@ -42,7 +38,7 @@
     @if (items.Count == 0)
     {
         <div class="empty-state mt-2">
-            <i class="bi bi-heart"></i>
+            <i class="bi bi-bookmark"></i>
             Your wishlist is empty. Use <strong>Add to Wishlist</strong> to save books you want to read.
         </div>
     }
@@ -92,46 +88,6 @@
     }
 </div>
 
-
-<!--   Add to Wishlist modal   -->
-<div class="modal fade" id="addWishlistModal" tabindex="-1"
-     aria-labelledby="addWishlistModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <form asp-controller="Account" asp-action="AddToWishlist" method="post">
-
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addWishlistModalLabel">
-                        <i class="bi bi-heart"></i>Add to Wishlist
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="modal-error" hidden="@(reopen == "addWishlistModal" ? null : "hidden")">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
-                        <span class="modal-error-text">@(reopen == "addWishlistModal" ? formError : null)</span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="wish-book" class="form-label">Book</label>
-                        <select class="form-select" id="wish-book" data-label="Book" name="bookId" required>
-                            <option value="">Choose a book…</option>
-                            @foreach (var b in addable)
-                            {
-                                <option value="@b.Id">@b.Title — @b.Author</option>
-                            }
-                        </select>
-                        <div class="form-text">Only books not already on your wishlist are shown.</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add</button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
 
 
 <!--   Remove from Wishlist confirm modal (filled from data-*)   -->

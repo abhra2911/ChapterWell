@@ -1,5 +1,7 @@
+@model Lib_Mgmt.Models.HomeStatsViewModel
 @{
     ViewData["Title"] = "Home";
+    var s = Model ?? new Lib_Mgmt.Models.HomeStatsViewModel();
 }
 
 <div class="home-hero">
@@ -16,28 +18,28 @@
     <div class="col-md-3 col-sm-6">
         <div class="fact-card t-navy">
             <div class="fact-icon"><i class="bi bi-book"></i></div>
-            <div class="fact-number">12,400+</div>
+            <div class="fact-number">@s.Books.ToString("N0")</div>
             <div class="fact-label">Books</div>
         </div>
     </div>
     <div class="col-md-3 col-sm-6">
         <div class="fact-card t-teal">
             <div class="fact-icon"><i class="bi bi-people"></i></div>
-            <div class="fact-number">3,200</div>
+            <div class="fact-number">@s.Members.ToString("N0")</div>
             <div class="fact-label">Members</div>
         </div>
     </div>
     <div class="col-md-3 col-sm-6">
         <div class="fact-card t-amber">
             <div class="fact-icon"><i class="bi bi-arrow-left-right"></i></div>
-            <div class="fact-number">840</div>
+            <div class="fact-number">@s.LoansThisMonth.ToString("N0")</div>
             <div class="fact-label">Loans This Month</div>
         </div>
     </div>
     <div class="col-md-3 col-sm-6">
         <div class="fact-card t-violet">
             <div class="fact-icon"><i class="bi bi-building"></i></div>
-            <div class="fact-number">1952</div>
+            <div class="fact-number">@s.EstablishedYear</div>
             <div class="fact-label">Established</div>
         </div>
     </div>

@@ -1,13 +1,19 @@
 @model Lib_Mgmt.Models.LibrarianMembersViewModel
 @{
-    var rows = Model?.Borrowings ?? new List<Lib_Mgmt.Models.MemberBorrowingRow>();
+    var rows      = Model?.Borrowings ?? new List<Lib_Mgmt.Models.MemberBorrowingRow>();
+    var reopen    = TempData["ReopenModal"] as string;
+    var formError = TempData["FormError"] as string;
 }
 
 <h2>Members</h2>
 <p class="subtitle">Current borrowings of all members</p>
 <hr />
 
-<div class="d-flex justify-content-end mb-2">
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <button type="button" class="btn btn-primary"
+            data-bs-toggle="modal" data-bs-target="#addMemberModal">
+        <i class="bi bi-plus-lg me-1"></i>Add Member
+    </button>
     <span class="result-count" data-filter-count>@rows.Count results</span>
 </div>
 
@@ -135,5 +141,76 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
+    </div>
+</div>
+
+
+<!--   Add Member modal   -->
+<div class="modal fade" id="addMemberModal" tabindex="-1"
+     aria-labelledby="addMemberModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <form asp-controller="Account" asp-action="AddMember" method="post" autocomplete="off">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMemberModalLabel">
+                        <i class="bi bi-person-plus"></i>Add a New Member
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-error" hidden="@(reopen == "addMemberModal" ? null : "hidden")">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span class="modal-error-text">@(reopen == "addMemberModal" ? formError : null)</span>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <label for="mem-fullname" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="mem-fullname" data-label="Full Name"
+                                   name="FullName" required maxlength="150" />
+                        </div>
+                        <div class="col-md-5">
+                            <label for="mem-username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="mem-username" data-label="Username"
+                                   name="Username" required minlength="3" maxlength="50"
+                                   pattern="[A-Za-z0-9_.\-]+" placeholder="e.g. priya.s" autocomplete="off" />
+                        </div>
+                        <div class="col-md-7">
+                            <label for="mem-email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="mem-email" data-label="Email"
+                                   name="Email" required maxlength="150" />
+                        </div>
+                        <div class="col-md-5">
+                            <label for="mem-phone" class="form-label">Phone</label>
+                            <input type="tel" class="form-control" id="mem-phone" data-label="Phone"
+                                   name="Phone" maxlength="20" placeholder="optional" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="mem-password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="mem-password" data-label="Password"
+                                   name="Password" required minlength="6" maxlength="100"
+                                   autocomplete="new-password" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="mem-confirm" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="mem-confirm" data-label="Confirm Password"
+                                   name="ConfirmPassword" required minlength="6" maxlength="100"
+                                   autocomplete="new-password" />
+                        </div>
+                        <div class="col-12">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                A member code (e.g. <code>MEM-0007</code>) will be assigned automatically.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Member</button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>

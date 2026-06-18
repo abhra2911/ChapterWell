@@ -44,7 +44,7 @@ namespace Lib_Mgmt.Controllers
         {
             if (string.IsNullOrWhiteSpace(model.Username) || string.IsNullOrEmpty(model.Password))
             {
-                ViewBag.Error = "Please enter your username and password.";
+                ViewBag.Error = "Please enter your username (or email) and password.";
                 return View();
             }
 
@@ -70,12 +70,14 @@ namespace Lib_Mgmt.Controllers
                 : RedirectToAction(nameof(MemberDashboard));
         }
 
+
         // GET: /Account/Logout
         public IActionResult Logout()
         {
             CurrentUser.SignOut(HttpContext.Session);
             return RedirectToAction(nameof(Login));
         }
+
 
         // ===============================================================
         // Librarian portal — one action per tab.
@@ -207,6 +209,41 @@ namespace Lib_Mgmt.Controllers
             var title = _repo.AddBook(model);
             TempData["Success"] = $"\"{title}\" added to the catalog.";
             return RedirectToAction(nameof(LibrarianBooks));
+        }
+
+        // POST: /Account/AddMember
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddMember(AddMemberViewModel model)
+        {
+            if (!TryLibrarian(out _)) return RedirectToAction(nameof(Login));
+
+            if (!ModelState.IsValid)
+            {
+                TempData["FormError"] = FirstError();
+                TempData["ReopenModal"] = "addMemberModal";
+                return RedirectToAction(nameof(LibrarianMembers));
+            }
+
+            int newId;
+            string code;
+            var result = _repo.AddMember(model, out newId, out code);
+
+            if (result == LibraryRepository.AddMemberResult.UsernameTaken)
+            {
+                TempData["FormError"] = "That username is already taken.";
+                TempData["ReopenModal"] = "addMemberModal";
+                return RedirectToAction(nameof(LibrarianMembers));
+            }
+            if (result == LibraryRepository.AddMemberResult.EmailTaken)
+            {
+                TempData["FormError"] = "A member with that email already exists.";
+                TempData["ReopenModal"] = "addMemberModal";
+                return RedirectToAction(nameof(LibrarianMembers));
+            }
+
+            TempData["Success"] = $"Member \"{model.FullName}\" added (code {code}).";
+            return RedirectToAction(nameof(LibrarianMembers));
         }
 
         // POST: /Account/EditBook

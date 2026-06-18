@@ -46,16 +46,22 @@ namespace Lib_Mgmt.Data
         }
 
         /// <summary>
-        /// Looks up an active user by username across both tables. Returns null
-        /// if no active row matches. The caller verifies the bcrypt hash.
-        /// Librarians take precedence (mirrors the original UNION ALL order).
+        /// Looks up an active user by username OR email across both tables. The
+        /// identifier is matched case-insensitively against the Email column and
+        /// exactly against Username. Returns null if no active row matches; the
+        /// caller verifies the bcrypt hash. Librarians take precedence (mirrors
+        /// the original UNION ALL order).
         /// </summary>
-        public AuthRow FindUserByUsername(string username)
+        public AuthRow FindUserByUsername(string identifier)
         {
-            username = username ?? "";
+            var id = (identifier ?? "").Trim();
+            if (id.Length == 0) return null;
+
+            var idLower = id.ToLower();
 
             var lib = _db.Librarians.AsNoTracking()
-                .FirstOrDefault(x => x.Username == username && x.IsActive == 1);
+                .FirstOrDefault(x => x.IsActive == 1
+                    && (x.Username == id || (x.Email != null && x.Email.ToLower() == idLower)));
 
             if (lib != null)
                 return new AuthRow
@@ -69,7 +75,9 @@ namespace Lib_Mgmt.Data
                 };
 
             var mem = _db.Members.AsNoTracking()
-                .FirstOrDefault(x => x.Username == username && x.IsActive == 1);
+                .FirstOrDefault(x => x.IsActive == 1
+                    && (x.Username == id || (x.Email != null && x.Email.ToLower() == idLower)));
+
             if (mem != null)
                 return new AuthRow
                 {
@@ -155,6 +163,34 @@ namespace Lib_Mgmt.Data
                 m.PasswordHash = newHash;
             }
             _db.SaveChanges();
+        }
+
+        // =====================================================================
+        // Public site stats (Home/Index "Our Library at a Glance")
+        // =====================================================================
+
+        public HomeStatsViewModel GetHomeStats()
+        {
+            // Total physical inventory — matches the "Books" headline figure
+            // better than a distinct-title count.
+            var bookCopies = _db.Books.AsNoTracking()
+                .Select(b => (int?)b.TotalCopies)
+                .Sum() ?? 0;
+
+            var activeMembers = _db.Members.AsNoTracking()
+                .Count(m => m.IsActive == 1);
+
+            var monthStart = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            var loansThisMonth = _db.Borrowings.AsNoTracking()
+                .Count(b => b.IssueDate >= monthStart);
+
+            return new HomeStatsViewModel
+            {
+                Books = bookCopies,
+                Members = activeMembers,
+                LoansThisMonth = loansThisMonth,
+                EstablishedYear = 1952
+            };
         }
 
         // =====================================================================
@@ -547,6 +583,65 @@ namespace Lib_Mgmt.Data
                     _db.SaveChanges();
                     tx.Commit();
                     return m.Title;
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
+            }
+        }
+
+        public enum AddMemberResult { Ok, UsernameTaken, EmailTaken }
+
+        /// <summary>
+        /// Creates a new member with a bcrypt-hashed password. Username is checked
+        /// for uniqueness across both Librarians and Members so logins can't collide.
+        /// MemberCode is auto-assigned as MEM-{id:D4} after the new id is known.
+        /// </summary>
+        public AddMemberResult AddMember(AddMemberViewModel m, out int newMemberId, out string memberCode)
+        {
+            newMemberId = 0;
+            memberCode = null;
+
+            var uname = (m.Username ?? "").Trim();
+            var email = (m.Email ?? "").Trim();
+
+            using (var tx = _db.Database.BeginTransaction())
+            {
+                try
+                {
+                    bool usernameTaken =
+                        _db.Librarians.Any(x => x.Username == uname) ||
+                        _db.Members.Any(x => x.Username == uname);
+                    if (usernameTaken) { tx.Rollback(); return AddMemberResult.UsernameTaken; }
+
+                    bool emailTaken = _db.Members.Any(x => x.Email == email);
+                    if (emailTaken) { tx.Rollback(); return AddMemberResult.EmailTaken; }
+
+                    var newId = NextId(_db.Members, x => x.MemberId);
+                    var code = "MEM-" + newId.ToString("D4");
+                    var hash = BCrypt.Net.BCrypt.HashPassword(m.Password);
+
+                    _db.Members.Add(new Member
+                    {
+                        MemberId = newId,
+                        Username = uname,
+                        FullName = (m.FullName ?? "").Trim(),
+                        MemberCode = code,
+                        PasswordHash = hash,
+                        Email = email,
+                        Phone = string.IsNullOrWhiteSpace(m.Phone) ? null : m.Phone.Trim(),
+                        IsActive = 1,
+                        JoinedDate = DateTime.Now
+                    });
+
+                    _db.SaveChanges();
+                    tx.Commit();
+
+                    newMemberId = newId;
+                    memberCode = code;
+                    return AddMemberResult.Ok;
                 }
                 catch
                 {
