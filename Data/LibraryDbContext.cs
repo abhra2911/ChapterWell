@@ -12,7 +12,6 @@ namespace Lib_Mgmt.Data
     ///   * Primary keys are application-assigned via NVL(MAX(id),0)+1, so each
     ///     key is marked ValueGeneratedNever() — EF must not assume an
     ///     identity column or sequence.
-    /// This context is a drop-in replacement for the previous raw-ADO.NET layer;
     /// LibraryRepository wraps it and keeps the same public API.
     /// </summary>
     public class LibraryDbContext : DbContext

@@ -563,14 +563,14 @@ namespace Lib_Mgmt.Controllers
             return RedirectToAction(nameof(MemberWishlist));
         }
 
-        // POST: /Account/RenewLoan
+        // POST: /Account/RenewLoan  //////////////////////////////////////////////////////////////////////////////////////////////////////////
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult RenewLoan(int id, string title)
         {
-            if (!TryMember(out var memberId)) return RedirectToAction(nameof(Login));
+            if (!TryLibrarian(out _)) return RedirectToAction(nameof(Login));  //libId not memId
 
-            var renewed = _repo.RenewLoan(id, memberId);
+            var renewed = _repo.RenewLoan(id);
             if (renewed)
             {
                 TempData["Success"] = string.IsNullOrEmpty(title)
@@ -579,9 +579,9 @@ namespace Lib_Mgmt.Controllers
             }
             else
             {
-                TempData["FormError"] = "This loan can't be renewed (it may be overdue or already returned).";
+                TempData["FormError"] = "This loan can't be renewed (it may be already returned).";
             }
-            return RedirectToAction(nameof(MemberLoans));
+            return RedirectToAction(nameof(LibrarianBorrowings));
         }
 
         // POST: /Account/PayFine

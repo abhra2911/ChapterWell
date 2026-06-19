@@ -543,7 +543,7 @@ namespace Lib_Mgmt.Data
         }
 
         // =====================================================================
-        // Librarian writes — books, damage, issue, return
+        // Librarian writes — books, damage, issue, renew, return
         // =====================================================================
 
         private int NextId<T>(IQueryable<T> set, System.Linq.Expressions.Expression<Func<T, int>> idSelector)
@@ -791,6 +791,22 @@ namespace Lib_Mgmt.Data
         /// Marks a borrowing returned, restocks the copy, and settles any
         /// outstanding fine attached to that loan.
         /// </summary>
+        /// 
+
+        /// <summary>Extends a loan by 14 days. Rejected if the loan is already overdue.</summary>
+        public bool RenewLoan(int borrowingId)
+        {
+            var today = DateTime.Today;
+            var loan = _db.Borrowings.FirstOrDefault(x =>
+                x.BorrowingId == borrowingId &&
+                x.Status == "ACTIVE");              // removing && x.DueDate >= today allows overdue books to be renewed
+ 
+            if (loan == null) return false;
+
+            loan.DueDate = loan.DueDate.AddDays(14);
+            _db.SaveChanges();
+            return true;
+        }
         public bool ReturnBook(int borrowingId)
         {
             using (var tx = _db.Database.BeginTransaction())
@@ -911,22 +927,6 @@ namespace Lib_Mgmt.Data
             _db.SaveChanges();
         }
 
-        /// <summary>Extends a loan by 14 days. Rejected if the loan is already overdue.</summary>
-        public bool RenewLoan(int borrowingId, int memberId)
-        {
-            var today = DateTime.Today;
-            var loan = _db.Borrowings.FirstOrDefault(x =>
-                x.BorrowingId == borrowingId &&
-                x.MemberId == memberId &&
-                x.Status == "ACTIVE" &&
-                x.DueDate >= today);
-
-            if (loan == null) return false;
-
-            loan.DueDate = loan.DueDate.AddDays(14);
-            _db.SaveChanges();
-            return true;
-        }
 
         public void PayFine(int fineId, int memberId)
         {
