@@ -132,8 +132,13 @@ body {
     }
 
     .navbar-custom .navbar-brand {
+        padding-left: 10px; /*////////////////////////////////////HACKY PADDING AAAA */
         font-weight: 700;
         letter-spacing: 0.2px;
+        font-size: 1.06rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
 
     .navbar-custom .nav-link:hover {
@@ -398,6 +403,76 @@ body {
     .portal-nav .dark-btn-wrap {
         margin-right: 12px;
     }
+
+/* Hamburger toggle button — hidden on wide screens, shown below the
+   breakpoint where the links would otherwise wrap onto a second line. */
+.portal-nav-toggler {
+    display: none;
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 6px;
+    color: #ffffff;
+    width: 40px;
+    height: 36px;
+    font-size: 1.2rem;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+    .portal-nav-toggler:hover {
+        background: rgba(255, 255, 255, 0.12);
+    }
+
+.portal-nav-collapse {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+}
+
+/* Below this width the inline links would wrap and look broken (as seen
+   on narrow windows), so collapse them into a Bootstrap-powered menu
+   instead — mirrors the navbar-toggler behaviour on the homepage. */
+@media (max-width: 860px) {
+    .portal-nav-toggler {
+        display: inline-flex;
+    }
+
+    .portal-nav-collapse {
+        flex-basis: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+        .portal-nav-collapse.collapse:not(.show) {
+            display: none;
+        }
+
+        .portal-nav-collapse a {
+            padding: 13px 4px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+            .portal-nav-collapse a.active {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+                border-left: 3px solid var(--brand-secondary);
+                padding-left: 10px;
+            }
+
+        .portal-nav-collapse .spacer {
+            display: none;
+        }
+
+        .portal-nav-collapse .dark-btn-wrap {
+            margin: 12px 0;
+        }
+
+        .portal-nav-collapse .nav-logout {
+            border-bottom: none;
+        }
+}
 
 .portal-content {
     padding: 30px 22px;
