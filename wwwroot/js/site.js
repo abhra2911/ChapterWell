@@ -283,6 +283,193 @@ function initBookCarousels() {
 }
 
 /* ---------------------------------------------------------------------------
+   Issue Book modal: ISBN lookup + title/author typeahead, in place of the
+   old long <select>. Both modes write to the same hidden #issue-book input
+   so the existing validation/POST contract is untouched.
+   ------------------------------------------------------------------------- */
+function initIssueBookPicker() {
+    var modal = document.getElementById('issueBookModal');
+    if (!modal) return;
+
+    var booksDataEl = document.getElementById('issuable-books-data');
+    var books = [];
+    try { books = JSON.parse(booksDataEl.textContent || '[]'); } catch (e) { books = []; }
+
+    var hiddenInput = modal.querySelector('#issue-book');
+    var submitBtn = modal.querySelector('#issue-submit-btn');
+
+    var modeBtns = modal.querySelectorAll('.issue-mode-btn');
+    var panels = modal.querySelectorAll('.issue-mode-panel');
+
+    var isbnInput = modal.querySelector('#issue-isbn');
+    var isbnResult = modal.querySelector('#issue-isbn-result');
+
+    var searchInput = modal.querySelector('#issue-search');
+    var searchList = modal.querySelector('#issue-search-list');
+    var searchResult = modal.querySelector('#issue-search-result');
+
+    function normalizeIsbn(s) {
+        return (s || '').replace(/[\s-]/g, '').toUpperCase();
+    }
+
+    function setSelectedBook(book, resultEl) {
+        hiddenInput.value = book.id;
+        submitBtn.disabled = false;
+        resultEl.innerHTML =
+            '<div class="issue-book-card">' +
+            '<div class="ibc-info">' +
+            '<span class="ibc-title">' + escapeHtml(book.title) + '</span>' +
+            '<span class="ibc-meta">' + escapeHtml(book.author) + ' &middot; ' + book.available + ' copy' + (book.available === 1 ? '' : 'ies') + ' available</span>' +
+            '</div>' +
+            '<button type="button" class="ibc-clear" aria-label="Clear selection">&times;</button>' +
+            '</div>';
+        resultEl.querySelector('.ibc-clear').addEventListener('click', function () {
+            clearSelection();
+        });
+    }
+
+    function setError(message, resultEl) {
+        hiddenInput.value = '';
+        submitBtn.disabled = true;
+        resultEl.innerHTML =
+            '<div class="issue-book-card error">' +
+            '<div class="ibc-info"><span class="ibc-title">' + escapeHtml(message) + '</span></div>' +
+            '</div>';
+    }
+
+    function clearSelection() {
+        hiddenInput.value = '';
+        submitBtn.disabled = true;
+        isbnResult.innerHTML = '';
+        searchResult.innerHTML = '';
+        isbnInput.value = '';
+        searchInput.value = '';
+        searchList.hidden = true;
+    }
+
+    function escapeHtml(s) {
+        var div = document.createElement('div');
+        div.textContent = s == null ? '' : s;
+        return div.innerHTML;
+    }
+
+    // ---- Mode toggle (ISBN vs Search) -------------------------------------
+    modeBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            modeBtns.forEach(function (b) {
+                b.classList.toggle('active', b === btn);
+                b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+            });
+            var mode = btn.getAttribute('data-mode');
+            panels.forEach(function (p) {
+                p.classList.toggle('d-none', p.getAttribute('data-panel') !== mode);
+            });
+            clearSelection();
+        });
+    });
+
+    // ---- ISBN lookup --------------------------------------------------------
+    isbnInput.addEventListener('input', function () {
+        var raw = isbnInput.value.trim();
+        if (!raw) { isbnResult.innerHTML = ''; hiddenInput.value = ''; submitBtn.disabled = true; return; }
+
+        var target = normalizeIsbn(raw);
+        var match = books.find(function (b) { return normalizeIsbn(b.isbn) === target; });
+
+        if (!match) {
+            setError('No available book matches that ISBN.', isbnResult);
+            return;
+        }
+        if (match.available <= 0) {
+            setError(match.title + ' has no copies available right now.', isbnResult);
+            return;
+        }
+        setSelectedBook(match, isbnResult);
+    });
+
+    // ---- Title / author typeahead -----------------------------------------
+    var highlightedIndex = -1;
+    var currentMatches = [];
+
+    function renderSearchList(matches) {
+        currentMatches = matches;
+        highlightedIndex = -1;
+
+        if (matches.length === 0) {
+            searchList.innerHTML = '<div class="book-typeahead-empty">No matching books found.</div>';
+            searchList.hidden = false;
+            return;
+        }
+        searchList.innerHTML = matches.map(function (b, i) {
+            return '<div class="book-typeahead-item" data-index="' + i + '">' +
+                '<span class="ta-title">' + escapeHtml(b.title) + '</span>' +
+                '<span class="ta-meta">' + escapeHtml(b.author) + ' &middot; ' + b.available + ' available</span>' +
+                '</div>';
+        }).join('');
+        searchList.hidden = false;
+
+        searchList.querySelectorAll('.book-typeahead-item').forEach(function (el) {
+            el.addEventListener('click', function () {
+                var book = currentMatches[parseInt(el.getAttribute('data-index'), 10)];
+                searchInput.value = book.title;
+                searchList.hidden = true;
+                setSelectedBook(book, searchResult);
+            });
+        });
+    }
+
+    searchInput.addEventListener('input', function () {
+        var q = searchInput.value.trim().toLowerCase();
+        searchResult.innerHTML = '';
+        hiddenInput.value = '';
+        submitBtn.disabled = true;
+
+        if (q.length < 2) { searchList.hidden = true; return; }
+
+        var matches = books.filter(function (b) {
+            return b.title.toLowerCase().indexOf(q) !== -1 || b.author.toLowerCase().indexOf(q) !== -1;
+        }).slice(0, 8);
+
+        renderSearchList(matches);
+    });
+
+    searchInput.addEventListener('keydown', function (e) {
+        var items = searchList.querySelectorAll('.book-typeahead-item');
+        if (searchList.hidden || items.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            highlightedIndex = Math.min(highlightedIndex + 1, items.length - 1);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            highlightedIndex = Math.max(highlightedIndex - 1, 0);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (highlightedIndex >= 0) items[highlightedIndex].click();
+            return;
+        } else if (e.key === 'Escape') {
+            searchList.hidden = true;
+            return;
+        } else {
+            return;
+        }
+        items.forEach(function (el, i) { el.classList.toggle('highlighted', i === highlightedIndex); });
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!searchList.contains(e.target) && e.target !== searchInput) {
+            searchList.hidden = true;
+        }
+    });
+
+    // Reset everything whenever the modal is reopened.
+    modal.addEventListener('show.bs.modal', function () {
+        clearSelection();
+        modeBtns[0].click();
+    });
+}
+
+/* ---------------------------------------------------------------------------
    Boot
    ------------------------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', function () {
@@ -292,4 +479,5 @@ document.addEventListener('DOMContentLoaded', function () {
     initDataModals();
     initCatalogFilters();
     initBookCarousels();
+    initIssueBookPicker();
 });
