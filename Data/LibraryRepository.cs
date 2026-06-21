@@ -25,6 +25,7 @@ namespace Lib_Mgmt.Data
     public class LibraryRepository
     {
         private readonly LibraryDbContext _db;
+        private const decimal FinePerDay = 5m;  // ₹5 per overdue day
 
         public LibraryRepository(LibraryDbContext db)
         {
@@ -416,6 +417,11 @@ namespace Lib_Mgmt.Data
                 m.FineDue += l.Fine;
             }
 
+            // Add unpaid crystallized fines (from past renewals/returns).
+            m.FineDue += _db.Fines
+                .Where(f => f.MemberId == memberId && f.PaidDate == null)
+                .Select(f => (decimal?)f.Amount).Sum() ?? 0m;
+
             // Top 10 books by all-time borrow count (including zero-borrow titles).
             var countsByBook = _db.Borrowings.AsNoTracking()
                 .GroupBy(x => x.BookId)
@@ -793,17 +799,45 @@ namespace Lib_Mgmt.Data
         /// </summary>
         /// 
 
-        /// <summary>Extends a loan by 14 days. Rejected if the loan is already overdue.</summary>
+        /// <summary>
+        /// Snapshots the accrued overdue fine into a real Fine DB row so it
+        /// survives renewals/returns.  Called inside an existing SaveChanges
+        /// batch — does NOT call SaveChanges itself.
+        /// </summary>
+        private void CrystallizeFine(Borrowing loan, string reason)
+        {
+            int daysOverdue = Math.Max(0, (DateTime.Today - loan.DueDate.Date).Days);
+            if (daysOverdue <= 0) return;
+
+            decimal amount = daysOverdue * FinePerDay;
+
+            _db.Fines.Add(new Entities.Fine
+            {
+                FineId = NextId(_db.Fines, f => f.FineId),
+                BorrowingId = loan.BorrowingId,
+                MemberId = loan.MemberId,
+                Reason = reason + " (" + daysOverdue + " day" + (daysOverdue == 1 ? "" : "s") + ")",
+                Amount = amount,
+                IssuedDate = DateTime.Now,
+                PaidDate = null
+            });
+        }
+
+        /// <summary>Extends a loan by 14 days from today.  If the loan is
+        /// overdue, the accrued fine is crystallized first so the debt is
+        /// not lost when the due-date resets.</summary>
         public bool RenewLoan(int borrowingId)
         {
             var today = DateTime.Today;
             var loan = _db.Borrowings.FirstOrDefault(x =>
                 x.BorrowingId == borrowingId &&
                 x.Status == "ACTIVE");              // removing && x.DueDate >= today allows overdue books to be renewed
- 
+
             if (loan == null) return false;
 
-            loan.DueDate = loan.DueDate.AddDays(14);
+            CrystallizeFine(loan, "Overdue at renewal");
+
+            loan.DueDate = today.AddDays(14);
             _db.SaveChanges();
             return true;
         }
@@ -823,8 +857,7 @@ namespace Lib_Mgmt.Data
                     if (book != null)
                         book.AvailableCopies = Math.Min(book.AvailableCopies + 1, book.TotalCopies);
 
-                    var unpaid = _db.Fines.Where(f => f.BorrowingId == borrowingId && f.PaidDate == null).ToList();
-                    foreach (var f in unpaid) f.PaidDate = DateTime.Now;
+                    CrystallizeFine(br, "Overdue at return");
 
                     _db.SaveChanges();
                     tx.Commit();

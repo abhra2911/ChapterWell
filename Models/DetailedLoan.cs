@@ -15,7 +15,7 @@ namespace Lib_Mgmt.Models
         public int DaysOverdue => Math.Max(0, (DateTime.Today - DueDate.Date).Days);
         public bool IsOverdue => DaysOverdue > 0;
         public int DaysLeft => (DueDate.Date - DateTime.Today).Days;
-        public decimal Fine => DaysOverdue * 2m;
+        public decimal Fine => DaysOverdue * 5m;
 
         // "Overdue" | "Due soon" | "On time" — drives the status pill colour.
         public string Status =>
