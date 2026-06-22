@@ -19,6 +19,9 @@
         case "wishlist":
             <partial name="Partials/_MemWishlist" model="@(Model as MemberWishlistViewModel)" />
             break;
+        case "reservations":
+            <partial name="Partials/_MemReservations" model="@(Model as MemberReservationsViewModel)" />
+            break;
         case "account":
             <partial name="Partials/_MemAccount" />
             break;

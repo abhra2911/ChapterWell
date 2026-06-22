@@ -530,6 +530,7 @@ namespace Lib_Mgmt.Data
                     select new WishlistItem
                     {
                         Id = w.WishlistId,
+                        BookId = w.BookId,
                         Title = bk.Title,
                         Author = bk.Author,
                         Isbn = bk.Isbn,
@@ -546,6 +547,146 @@ namespace Lib_Mgmt.Data
                 _db.Wishlist.AsNoTracking()
                     .Where(w => w.MemberId == memberId)
                     .Select(w => w.BookId));
+        }
+
+        // =====================================================================
+        // Member — reservations (only valid when a book has 0 copies left)
+        // =====================================================================
+
+        public List<ReservationItem> GetMemberReservations(int memberId)
+        {
+            return (from r in _db.Reservations.AsNoTracking()
+                    join bk in _db.Books.AsNoTracking() on r.BookId equals bk.BookId
+                    where r.MemberId == memberId
+                    orderby r.RequestedDate descending
+                    select new ReservationItem
+                    {
+                        Id = r.ReservationId,
+                        BookId = r.BookId,
+                        Title = bk.Title,
+                        Author = bk.Author,
+                        Isbn = bk.Isbn,
+                        Genre = bk.Genre,
+                        RequestedOn = r.RequestedDate
+                    }).ToList();
+        }
+
+        public enum ReserveResult { Ok, AlreadyReserved, BookNotFound, CopiesAvailable }
+
+        /// <summary>Reserves a book for a member. Only allowed when the book
+        /// currently has zero available copies — if any copies are free the
+        /// member should simply be issued the book instead.</summary>
+        public ReserveResult ReserveBook(int memberId, int bookId, out string title)
+        {
+            title = null;
+            using (var tx = _db.Database.BeginTransaction())
+            {
+                try
+                {
+                    var book = _db.Books.FirstOrDefault(b => b.BookId == bookId);
+                    if (book == null) { tx.Rollback(); return ReserveResult.BookNotFound; }
+                    title = book.Title;
+
+                    if (book.AvailableCopies > 0) { tx.Rollback(); return ReserveResult.CopiesAvailable; }
+
+                    bool already = _db.Reservations.Any(r => r.MemberId == memberId && r.BookId == bookId);
+                    if (already) { tx.Rollback(); return ReserveResult.AlreadyReserved; }
+
+                    var newId = NextId(_db.Reservations, r => r.ReservationId);
+                    _db.Reservations.Add(new Reservation
+                    {
+                        ReservationId = newId,
+                        MemberId = memberId,
+                        BookId = bookId,
+                        RequestedDate = DateTime.Now
+                    });
+
+                    _db.SaveChanges();
+                    tx.Commit();
+                    return ReserveResult.Ok;
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
+            }
+        }
+
+        /// <summary>Cancels (hard-deletes) a member's own pending reservation.</summary>
+        public void CancelReservation(int reservationId, int memberId)
+        {
+            var r = _db.Reservations.FirstOrDefault(x => x.ReservationId == reservationId && x.MemberId == memberId);
+            if (r == null) return;
+            _db.Reservations.Remove(r);
+            _db.SaveChanges();
+        }
+
+        // =====================================================================
+        // Librarian — reservations (view queue + fulfil)
+        // =====================================================================
+
+        public List<LibrarianReservationRow> GetPendingReservations()
+        {
+            return (from r in _db.Reservations.AsNoTracking()
+                    join bk in _db.Books.AsNoTracking() on r.BookId equals bk.BookId
+                    join mb in _db.Members.AsNoTracking() on r.MemberId equals mb.MemberId
+                    orderby r.RequestedDate ascending
+                    select new LibrarianReservationRow
+                    {
+                        Id = r.ReservationId,
+                        BookId = r.BookId,
+                        BookTitle = bk.Title,
+                        Isbn = bk.Isbn,
+                        MemberId = mb.MemberId,
+                        MemberName = mb.FullName,
+                        MemberCode = mb.MemberCode,
+                        RequestedOn = r.RequestedDate,
+                        AvailableCopies = bk.AvailableCopies
+                    }).ToList();
+        }
+
+        public enum FulfillResult { Ok, NotFound, NoCopies }
+
+        /// <summary>Issues the reserved book to the member who reserved it
+        /// and deletes the reservation, in one transaction. Loan period is
+        /// the standard 14 days from today, same as a normal issue.</summary>
+        public FulfillResult FulfillReservation(int reservationId)
+        {
+            using (var tx = _db.Database.BeginTransaction())
+            {
+                try
+                {
+                    var resv = _db.Reservations.FirstOrDefault(r => r.ReservationId == reservationId);
+                    if (resv == null) { tx.Rollback(); return FulfillResult.NotFound; }
+
+                    var book = _db.Books.FirstOrDefault(b => b.BookId == resv.BookId);
+                    if (book == null || book.AvailableCopies <= 0) { tx.Rollback(); return FulfillResult.NoCopies; }
+
+                    var newId = NextId(_db.Borrowings, b => b.BorrowingId);
+                    _db.Borrowings.Add(new Borrowing
+                    {
+                        BorrowingId = newId,
+                        MemberId = resv.MemberId,
+                        BookId = resv.BookId,
+                        IssueDate = DateTime.Now,
+                        DueDate = DateTime.Today.AddDays(14),
+                        Status = "ACTIVE"
+                    });
+
+                    book.AvailableCopies -= 1;
+                    _db.Reservations.Remove(resv);
+
+                    _db.SaveChanges();
+                    tx.Commit();
+                    return FulfillResult.Ok;
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
+            }
         }
 
         // =====================================================================
@@ -832,7 +973,7 @@ namespace Lib_Mgmt.Data
             var loan = _db.Borrowings.FirstOrDefault(x =>
                 x.BorrowingId == borrowingId &&
                 x.Status == "ACTIVE");              // removing && x.DueDate >= today allows overdue books to be renewed
-
+ 
             if (loan == null) return false;
 
             CrystallizeFine(loan, "Overdue at renewal");

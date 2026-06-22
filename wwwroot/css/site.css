@@ -132,13 +132,8 @@ body {
     }
 
     .navbar-custom .navbar-brand {
-        padding-left: 10px; /*////////////////////////////////////HACKY PADDING AAAA */
         font-weight: 700;
         letter-spacing: 0.2px;
-        font-size: 1.06rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
     }
 
     .navbar-custom .nav-link:hover {
@@ -455,11 +450,11 @@ body {
             border-bottom: 1px solid rgba(255, 255, 255, 0.12);
         }
 
-            .portal-nav-collapse a.active {
-                border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-                border-left: 3px solid var(--brand-secondary);
-                padding-left: 10px;
-            }
+        .portal-nav-collapse a.active {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            border-left: 3px solid var(--brand-secondary);
+            padding-left: 10px;
+        }
 
         .portal-nav-collapse .spacer {
             display: none;
@@ -1049,6 +1044,13 @@ body {
         color: var(--text-secondary);
     }
 
+.login-hint {
+    margin-top: 18px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
 /* ============================================================================
    Footer
    ========================================================================== */
@@ -1586,11 +1588,6 @@ button.book-card {
         margin-top: 8px;
     }
 
-    .wish-card .wish-remove {
-        margin-top: 10px;
-        width: 100%;
-    }
-
     .wish-card:hover {
         transform: translateY(-3px);
         box-shadow: var(--shadow-hover);
@@ -1848,10 +1845,10 @@ button.book-card {
             color: var(--text-primary);
         }
 
-    .issue-book-card.error {
-        background: var(--g-rose-bg);
-    }
+.issue-book-card.error {
+    background: var(--g-rose-bg);
+}
 
-        .issue-book-card.error .ibc-title {
-            color: var(--g-rose-fg);
-        }
+    .issue-book-card.error .ibc-title {
+        color: var(--g-rose-fg);
+    }

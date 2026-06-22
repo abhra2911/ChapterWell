@@ -25,6 +25,7 @@ namespace Lib_Mgmt.Data
         public DbSet<Fine> Fines { get; set; }
         public DbSet<BookDamage> BookDamages { get; set; }
         public DbSet<WishlistEntry> Wishlist { get; set; }
+        public DbSet<Reservation> Reservations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder b)
         {
@@ -119,6 +120,16 @@ namespace Lib_Mgmt.Data
                 e.Property(x => x.MemberId).HasColumnName("MEMBER_ID");
                 e.Property(x => x.BookId).HasColumnName("BOOK_ID");
                 e.Property(x => x.AddedDate).HasColumnName("ADDED_DATE");
+            });
+
+            b.Entity<Reservation>(e =>
+            {
+                e.ToTable("LIBMGMT_RESERVATIONS");
+                e.HasKey(x => x.ReservationId);
+                e.Property(x => x.ReservationId).HasColumnName("RESERVATION_ID").ValueGeneratedNever();
+                e.Property(x => x.MemberId).HasColumnName("MEMBER_ID");
+                e.Property(x => x.BookId).HasColumnName("BOOK_ID");
+                e.Property(x => x.RequestedDate).HasColumnName("REQUESTED_DATE");
             });
         }
     }

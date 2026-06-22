@@ -71,11 +71,23 @@
                         <div class="wish-added">
                             <i class="bi bi-bookmark-star me-1"></i>Saved @w.AddedOn.ToString("dd MMM yyyy")
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-danger wish-remove"
-                                data-bs-toggle="modal" data-bs-target="#removeWishModal"
-                                data-id="@w.Id" data-title="@w.Title">
-                            <i class="bi bi-trash me-1"></i>Remove
-                        </button>
+                        <div class="d-flex gap-2 mt-1">
+                            @if (!w.Available)
+                            {
+                                <form asp-controller="Account" asp-action="ReserveBook" method="post" class="flex-fill">
+                                    <input type="hidden" name="bookId" value="@w.BookId" />
+                                    <input type="hidden" name="returnTo" value="wishlist" />
+                                    <button type="submit" class="btn btn-sm btn-outline-primary w-100">
+                                        <i class="bi bi-bookmark-plus me-1"></i>Reserve
+                                    </button>
+                                </form>
+                            }
+                            <button type="button" class="btn btn-sm btn-outline-danger wish-remove flex-fill"
+                                    data-bs-toggle="modal" data-bs-target="#removeWishModal"
+                                    data-id="@w.Id" data-title="@w.Title">
+                                <i class="bi bi-trash me-1"></i>Remove
+                            </button>
+                        </div>
                     </div>
                 </div>
             }

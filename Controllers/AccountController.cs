@@ -139,7 +139,8 @@ namespace Lib_Mgmt.Controllers
             var model = new LibrarianBorrowingsViewModel
             {
                 Active = _repo.GetActiveBorrowings(),
-                IssuableBooks = _repo.GetCatalog().Where(b => b.AvailableCopies > 0).ToList()
+                IssuableBooks = _repo.GetCatalog().Where(b => b.AvailableCopies > 0).ToList(),
+                PendingReservations = _repo.GetPendingReservations()
             };
             return View("LibrarianPortal", model);
         }
@@ -357,6 +358,33 @@ namespace Lib_Mgmt.Controllers
             return RedirectToAction(nameof(LibrarianBorrowings));
         }
 
+        // POST: /Account/FulfillReservation
+        // Issues the reserved book straight to the member who requested it
+        // and removes the reservation from the queue.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult FulfillReservation(int id, string title)
+        {
+            if (!TryLibrarian(out _)) return RedirectToAction(nameof(Login));
+
+            var result = _repo.FulfillReservation(id);
+            switch (result)
+            {
+                case LibraryRepository.FulfillResult.Ok:
+                    TempData["Success"] = string.IsNullOrEmpty(title)
+                        ? "Reservation fulfilled."
+                        : $"\"{title}\" issued — reservation fulfilled.";
+                    break;
+                case LibraryRepository.FulfillResult.NoCopies:
+                    TempData["FormError"] = "No copies are available for that book yet.";
+                    break;
+                default:
+                    TempData["FormError"] = "Could not find that reservation.";
+                    break;
+            }
+            return RedirectToAction(nameof(LibrarianBorrowings));
+        }
+
         // POST: /Account/ReturnBook
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -452,6 +480,20 @@ namespace Lib_Mgmt.Controllers
             {
                 Items = items,
                 AddableBooks = _repo.GetCatalog().Where(b => !onList.Contains(b.Isbn)).ToList()
+            };
+            return View("MemberPortal", model);
+        }
+
+        // GET: /Account/MemberReservations
+        public IActionResult MemberReservations()
+        {
+            if (!TryMember(out var id)) return RedirectToAction(nameof(Login));
+
+            ViewData["ActiveSection"] = "reservations";
+            var model = new MemberReservationsViewModel
+            {
+                Items = _repo.GetMemberReservations(id),
+                ReservableBooks = _repo.GetCatalog().Where(b => b.AvailableCopies == 0).ToList()
             };
             return View("MemberPortal", model);
         }
@@ -561,6 +603,57 @@ namespace Lib_Mgmt.Controllers
                 ? "Removed from your wishlist."
                 : $"\"{title}\" removed from your wishlist.";
             return RedirectToAction(nameof(MemberWishlist));
+        }
+
+        // POST: /Account/ReserveBook
+        // Called both from the Wishlist page (book already known, no copies
+        // left) and from the "Reserve a Book" modal on the Reservations tab.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ReserveBook(int bookId, string returnTo)
+        {
+            if (!TryMember(out var id)) return RedirectToAction(nameof(Login));
+
+            var redirectTarget = returnTo == "wishlist" ? nameof(MemberWishlist) : nameof(MemberReservations);
+
+            if (bookId <= 0)
+            {
+                TempData["FormError"] = "Please choose a book to reserve.";
+                TempData["ReopenModal"] = "reserveBookModal";
+                return RedirectToAction(redirectTarget);
+            }
+
+            var result = _repo.ReserveBook(id, bookId, out var title);
+            switch (result)
+            {
+                case LibraryRepository.ReserveResult.Ok:
+                    TempData["Success"] = $"\"{title}\" reserved. We'll let you know when a copy is free.";
+                    break;
+                case LibraryRepository.ReserveResult.AlreadyReserved:
+                    TempData["FormError"] = $"You've already reserved \"{title}\".";
+                    break;
+                case LibraryRepository.ReserveResult.CopiesAvailable:
+                    TempData["FormError"] = $"\"{title}\" is available right now — ask a librarian to issue it to you.";
+                    break;
+                case LibraryRepository.ReserveResult.BookNotFound:
+                    TempData["FormError"] = "Could not find that book.";
+                    break;
+            }
+            return RedirectToAction(redirectTarget);
+        }
+
+        // POST: /Account/CancelReservation
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CancelReservation(int id, string title)
+        {
+            if (!TryMember(out var memberId)) return RedirectToAction(nameof(Login));
+
+            _repo.CancelReservation(id, memberId);
+            TempData["Success"] = string.IsNullOrEmpty(title)
+                ? "Reservation cancelled."
+                : $"Reservation for \"{title}\" cancelled.";
+            return RedirectToAction(nameof(MemberReservations));
         }
 
         // POST: /Account/RenewLoan  //////////////////////////////////////////////////////////////////////////////////////////////////////////
