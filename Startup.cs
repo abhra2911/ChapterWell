@@ -6,7 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Lib_Mgmt.Data;
-using Oracle.EntityFrameworkCore;
+using Lib_Mgmt.Models;
+using Devart.Data.Oracle;   // brings in the Devart UseOracle() extension
 
 namespace Lib_Mgmt
 {
@@ -31,13 +32,14 @@ namespace Lib_Mgmt
                 options.Cookie.IsEssential = true;
             });
 
-            // EF Core 2.1 over Oracle (Oracle.EntityFrameworkCore). The context
-            // is registered scoped (one per request); the repository wraps it.
-            services.AddDbContext<LibraryDbContext>(options =>
-                options.UseOracle(Configuration.GetConnectionString("LibraryDb")).EnableSensitiveDataLogging());    //ADDED LOGGING METHOD
+            // EF Core 2.1 over Oracle via Devart dotConnect (Devart.Data.Oracle.EFCore).
+            // The context is registered scoped (one per request); the repository wraps it.
+            //services.AddDbContext<LibraryDbContext>(options =>
+            //          options.UseOracle(Configuration.GetConnectionString("LibraryDb")));    
 
             // One repository instance per request.
             services.AddScoped<LibraryRepository>();
+            services.AddScoped<ModelContext>();
 
             services.AddMvc()
                     .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);

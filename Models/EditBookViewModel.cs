@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Lib_Mgmt.Models
 {
@@ -23,8 +23,14 @@ namespace Lib_Mgmt.Models
         [StringLength(50)]
         public string Genre { get; set; }
 
-        [Required(ErrorMessage = "Quantity is required.")]
-        [Range(0, 9999, ErrorMessage = "Quantity must be between 0 and 9999.")]
+        [Required(ErrorMessage = "Total copies is required.")]
+        [Range(0, 9999, ErrorMessage = "Total copies must be between 0 and 9999.")]
+        [Display(Name = "Total Copies")]
         public int Quantity { get; set; }
+
+        [Required(ErrorMessage = "Available copies is required.")]
+        [Range(0, 9999, ErrorMessage = "Available copies must be between 0 and 9999.")]
+        [Display(Name = "Available Copies")]
+        public int AvailableCopies { get; set; }
     }
 }

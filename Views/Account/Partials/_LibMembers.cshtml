@@ -1,12 +1,12 @@
 @model Lib_Mgmt.Models.LibrarianMembersViewModel
 @{
-    var rows      = Model?.Borrowings ?? new List<Lib_Mgmt.Models.MemberBorrowingRow>();
+    var rows      = Model?.Members ?? new List<Lib_Mgmt.Models.RegisteredMemberRow>();
     var reopen    = TempData["ReopenModal"] as string;
     var formError = TempData["FormError"] as string;
 }
 
 <h2>Members</h2>
-<p class="subtitle">Current borrowings of all members</p>
+<p class="subtitle">All registered members</p>
 <hr />
 
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
@@ -22,7 +22,7 @@
         <div class="search-field">
             <i class="bi bi-search"></i>
             <input type="text" class="form-control" data-filter-search
-                   placeholder="Search by member or book..." aria-label="Search members" />
+                   placeholder="Search by name, code, or email..." aria-label="Search members" />
         </div>
     </div>
 
@@ -31,9 +31,11 @@
             <thead>
                 <tr>
                     <th>Member</th>
-                    <th>Book Borrowed</th>
-                    <th>Borrowed On</th>
-                    <th>Due Date</th>
+                    <th>Code</th>
+                    <th>Email</th>
+                    <th>Joined</th>
+                    <th>Loans</th>
+                    <th>Unpaid Fines</th>
                     <th>Status</th>
                     <th class="text-end">Actions</th>
                 </tr>
@@ -42,38 +44,65 @@
                 @foreach (var r in rows)
                 {
                     <tr data-filter-item
-                        data-title="@r.BookTitle" data-author="@r.MemberName" data-genre="">
-                        <td class="fw-semibold">@r.MemberName</td>
-                        <td>@r.BookTitle</td>
-                        <td>@r.BorrowedOn.ToString("dd MMM yyyy")</td>
-                        <td>@r.DueDate.ToString("dd MMM yyyy")</td>
+                        data-title="@r.FullName" data-author="@r.MemberCode" data-genre="@r.Email">
+                        <td class="fw-semibold">@r.FullName</td>
+                        <td><code>@r.MemberCode</code></td>
+                        <td>@r.Email</td>
+                        <td>@r.JoinedDate.ToString("dd MMM yyyy")</td>
                         <td>
-                            @if (r.IsOverdue)
+                            @if (r.ActiveLoans > 0)
                             {
-                                <span class="avail-pill no">Overdue</span>
+                                <span class="badge bg-info text-dark">@r.ActiveLoans</span>
                             }
                             else
                             {
-                                <span class="avail-pill yes">On time</span>
+                                <span class="text-muted">0</span>
+                            }
+                        </td>
+                        <td>
+                            @if (r.UnpaidFines > 0)
+                            {
+                                <span class="text-danger fw-semibold">&#8377;@r.UnpaidFines</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">&#8377;0</span>
+                            }
+                        </td>
+                        <td>
+                            @if (r.IsActive)
+                            {
+                                <span class="avail-pill yes">Active</span>
+                            }
+                            else
+                            {
+                                <span class="avail-pill no">Inactive</span>
                             }
                         </td>
                         <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-outline-primary"
-                                    data-bs-toggle="modal" data-bs-target="#memberDetailModal"
-                                    data-member="@r.MemberName" data-memberid="@r.MemberId"
-                                    data-email="@r.Email" data-book="@r.BookTitle"
-                                    data-borrowed="@r.BorrowedOn.ToString("dd MMM yyyy")"
-                                    data-due="@r.DueDate.ToString("dd MMM yyyy")"
-                                    data-status="@(r.IsOverdue ? "Overdue" : "On time")"
-                                    data-overdue="@r.DaysOverdue days"
-                                    data-fine="&#8377;@r.Fine">
-                                <i class="bi bi-eye me-1"></i>View
+                            <button type="button" class="btn btn-sm btn-outline-primary btn-icon"
+                                    title="View" data-bs-toggle="modal" data-bs-target="#memberDetailModal"
+                                    data-name="@r.FullName" data-code="@r.MemberCode"
+                                    data-email="@r.Email" data-phone="@r.Phone"
+                                    data-joined="@r.JoinedDate.ToString("dd MMM yyyy")"
+                                    data-loans="@r.ActiveLoans"
+                                    data-fines="&#8377;@r.UnpaidFines"
+                                    data-status="@(r.IsActive ? "Active" : "Inactive")">
+                                <i class="bi bi-eye"></i>
                             </button>
+                            <form asp-controller="Account" asp-action="DeleteMember" method="post"
+                                  class="d-inline" onsubmit="return confirm('Delete @r.FullName? This cannot be undone.');">
+                                <input type="hidden" name="id" value="@r.Id" />
+                                <input type="hidden" name="name" value="@r.FullName" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger btn-icon" title="Delete member">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </form>
                         </td>
                     </tr>
                 }
                 <tr data-filter-empty style="display:none">
-                    <td colspan="6">
+                    <td colspan="8">
                         <div class="empty-state border-0">
                             <i class="bi bi-search"></i>
                             No members match your search.
@@ -86,54 +115,50 @@
 </div>
 
 
-<!--   Member borrowing detail modal (read-only, filled from data-*)   -->
+<!--   Member detail modal (read-only, filled from data-*)   -->
 <div class="modal fade" id="memberDetailModal" tabindex="-1" data-fillable
      aria-labelledby="memberDetailModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="memberDetailModalLabel">
-                    <i class="bi bi-person-vcard"></i>Borrowing Details
+                    <i class="bi bi-person-vcard"></i>Member Details
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="detail-grid">
                     <div>
-                        <div class="detail-label">Member</div>
-                        <div class="detail-value" data-field="member"></div>
+                        <div class="detail-label">Name</div>
+                        <div class="detail-value" data-field="name"></div>
                     </div>
                     <div>
-                        <div class="detail-label">Member ID</div>
-                        <div class="detail-value" data-field="memberid"></div>
+                        <div class="detail-label">Member Code</div>
+                        <div class="detail-value" data-field="code"></div>
                     </div>
                     <div style="grid-column: 1 / -1;">
                         <div class="detail-label">Email</div>
                         <div class="detail-value" data-field="email"></div>
                     </div>
+                    <div>
+                        <div class="detail-label">Phone</div>
+                        <div class="detail-value" data-field="phone"></div>
+                    </div>
+                    <div>
+                        <div class="detail-label">Joined</div>
+                        <div class="detail-value" data-field="joined"></div>
+                    </div>
+                    <div>
+                        <div class="detail-label">Active Loans</div>
+                        <div class="detail-value" data-field="loans"></div>
+                    </div>
+                    <div>
+                        <div class="detail-label">Unpaid Fines</div>
+                        <div class="detail-value" data-field="fines"></div>
+                    </div>
                     <div style="grid-column: 1 / -1;">
-                        <div class="detail-label">Book Borrowed</div>
-                        <div class="detail-value" data-field="book"></div>
-                    </div>
-                    <div>
-                        <div class="detail-label">Borrowed On</div>
-                        <div class="detail-value" data-field="borrowed"></div>
-                    </div>
-                    <div>
-                        <div class="detail-label">Due Date</div>
-                        <div class="detail-value" data-field="due"></div>
-                    </div>
-                    <div>
                         <div class="detail-label">Status</div>
                         <div class="detail-value" data-field="status"></div>
-                    </div>
-                    <div>
-                        <div class="detail-label">Days Overdue</div>
-                        <div class="detail-value" data-field="overdue"></div>
-                    </div>
-                    <div style="grid-column: 1 / -1;">
-                        <div class="detail-label">Fine Due</div>
-                        <div class="detail-value" data-field="fine"></div>
                     </div>
                 </div>
             </div>
