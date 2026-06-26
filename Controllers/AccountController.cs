@@ -661,7 +661,7 @@ namespace Lib_Mgmt.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult RenewLoan(int id, string title)
         {
-            if (!TryLibrarian(out _)) return RedirectToAction(nameof(Login));  //libId not memId
+            if (!TryLibrarian(out _)) return RedirectToAction(nameof(Login));  
 
             var renewed = _repo.RenewLoan(id);
             if (renewed)
