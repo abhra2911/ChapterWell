@@ -15,7 +15,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "Lib_Mgmt": {
+    "Chapterly": {
       "commandName": "Project",
       "launchBrowser": true,
       "applicationUrl": "http://localhost:5144",
