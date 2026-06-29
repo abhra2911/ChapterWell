@@ -50,7 +50,7 @@
     <div class="book-grid">
         @foreach (var b in books)
         {
-            var cover = string.IsNullOrEmpty(b.CoverImage) ? "/images/placeholder-cover.svg" : b.CoverImage;
+            var cover = $"/images/bookcovers/{b.Isbn}.jpg";
             var saved = wishSet.Contains(b.Id);
             <div class="book-card clickable" data-filter-item
                  data-title="@b.Title" data-author="@b.Author" data-genre="@b.Genre"

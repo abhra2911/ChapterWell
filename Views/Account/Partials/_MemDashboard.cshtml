@@ -47,7 +47,7 @@
         @foreach (var book in Model.TopBooks)
         {
             rank++;
-            var cover = $"/images/bookcovers/@{book.Isbn}.jpg";
+            var cover = $"/images/bookcovers/{book.Isbn}.jpg";
             <button type="button" class="book-card clickable"
                     data-bs-toggle="modal" data-bs-target="#bookDetailsModal"
                     data-title="@book.Title" data-author="@book.Author" data-isbn="@book.Isbn"
