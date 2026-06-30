@@ -62,7 +62,8 @@
                             <button type="button" class="btn btn-sm btn-outline-primary btn-icon"
                                     title="Edit" data-bs-toggle="modal" data-bs-target="#editBookModal"
                                     data-id="@b.Id" data-title="@b.Title" data-author="@b.Author"
-                                    data-isbn="@b.Isbn" data-genre="@b.Genre" data-quantity="@b.Quantity">
+                                    data-isbn="@b.Isbn" data-genre="@b.Genre" data-quantity="@b.Quantity"
+                                    data-availablecopies="@b.AvailableCopies">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <button type="button" class="btn btn-sm btn-outline-danger btn-icon"
@@ -240,15 +241,20 @@
                             <input type="text" class="form-control" id="edit-book-author" data-label="Author"
                                    data-field="author" name="Author" required maxlength="150" />
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <label for="edit-book-genre" class="form-label">Genre</label>
                             <input type="text" class="form-control" id="edit-book-genre" data-label="Genre"
                                    data-field="genre" name="Genre" required maxlength="50" />
                         </div>
                         <div class="col-md-3">
-                            <label for="edit-book-quantity" class="form-label">Quantity</label>
-                            <input type="number" class="form-control" id="edit-book-quantity" data-label="Quantity"
+                            <label for="edit-book-quantity" class="form-label">Total Copies</label>
+                            <input type="number" class="form-control" id="edit-book-quantity" data-label="Total Copies"
                                    data-field="quantity" name="Quantity" required min="0" max="9999" />
+                        </div>
+                        <div class="col-md-3">
+                            <label for="edit-book-available" class="form-label">Available</label>
+                            <input type="number" class="form-control" id="edit-book-available" data-label="Available Copies"
+                                   data-field="availablecopies" name="AvailableCopies" required min="0" max="9999" />
                         </div>
                     </div>
                 </div>

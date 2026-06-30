@@ -1,22 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Lib_Mgmt</RootNamespace>
-    <LangVersion>7.3</LangVersion>
-	  
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App" />
-	<PackageReference Include="System.Text.Json" Version="10.0.9" />  <!--For Json Serialiser for _LibBorrowings -> Issue Book  -->
+    <!-- bcrypt for password hashing -->
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Use matching 2.19.x versions so no downgrade occurs -->
-    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.180" />
-    <PackageReference Include="Oracle.EntityFrameworkCore" Version="2.19.180" />
-    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <!--
+      SQL Server data access via the official Microsoft EF Core provider.
+      Tools/Design are needed in PMC (or `dotnet ef`) for migrations.
+    -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore"             Version="10.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer"   Version="10.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools"       Version="10.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design"      Version="10.0.9" />
   </ItemGroup>
 
 </Project>

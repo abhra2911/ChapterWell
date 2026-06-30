@@ -594,6 +594,123 @@ function initReserveBookPicker() {
 }
 
 /* ---------------------------------------------------------------------------
+   Count-up numbers: animates .fact-number / .stat-value from 0 to their
+   rendered value when they first scroll into view. Purely presentational —
+   the final text is exactly the server-rendered string, so nothing is lost
+   if JS is disabled or motion is reduced.
+
+   The element's existing text is treated as the target. We parse out the
+   numeric part but preserve any thousands separators and non-digit suffix
+   (e.g. "1,284" stays comma-grouped; a stray "+" would be re-appended).
+   Values that aren't numeric (or are years like 1997 that we'd rather not
+   animate as "1,997") are left untouched.
+   ------------------------------------------------------------------------- */
+function prefersReducedMotion() {
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function animateCount(el) {
+    var raw = (el.textContent || '').trim();
+
+    // Pull the leading number (allowing commas) and any suffix after it.
+    var match = raw.match(/^([\d,]+)(.*)$/);
+    if (!match) return;                       // non-numeric — leave as-is
+
+    var target = parseInt(match[1].replace(/,/g, ''), 10);
+    var suffix = match[2] || '';
+    if (isNaN(target) || target === 0) return;
+
+    // Don't animate 4-digit "year" values with no separator/suffix — a plain
+    // 1997 reads as a year, and ticking it up looks wrong. Heuristic: exactly
+    // 4 digits, no comma in the source, no suffix.
+    if (match[1].indexOf(',') === -1 && suffix === '' && target >= 1000 && target <= 9999) {
+        return;
+    }
+
+    var hadComma = match[1].indexOf(',') > -1;
+    var duration = 1100;
+    var start = null;
+    el.classList.add('counting');
+
+    function fmt(n) {
+        var s = String(n);
+        return hadComma ? n.toLocaleString('en-US') : s;
+    }
+
+    function tick(ts) {
+        if (start === null) start = ts;
+        var p = Math.min((ts - start) / duration, 1);
+        // easeOutCubic for a quick start that settles gently.
+        var eased = 1 - Math.pow(1 - p, 3);
+        var value = Math.round(eased * target);
+        el.textContent = fmt(value) + suffix;
+        if (p < 1) {
+            requestAnimationFrame(tick);
+        } else {
+            el.textContent = fmt(target) + suffix;
+            el.classList.remove('counting');
+        }
+    }
+    requestAnimationFrame(tick);
+}
+
+function initCountUp() {
+    var nums = document.querySelectorAll('.fact-number, .stat-value');
+    if (nums.length === 0) return;
+
+    if (prefersReducedMotion() || !('IntersectionObserver' in window)) {
+        return;   // leave server-rendered values exactly as they are
+    }
+
+    var seen = new WeakSet();
+    var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting && !seen.has(entry.target)) {
+                seen.add(entry.target);
+                animateCount(entry.target);
+                obs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.4 });
+
+    nums.forEach(function (n) { obs.observe(n); });
+}
+
+/* ---------------------------------------------------------------------------
+   Scroll-reveal: any element tagged [data-reveal] fades/rises in when it
+   enters the viewport. Items sharing a [data-reveal-group] ancestor are
+   staggered via a --reveal-i index for a cascading effect.
+   ------------------------------------------------------------------------- */
+function initScrollReveal() {
+    var items = document.querySelectorAll('[data-reveal]');
+    if (items.length === 0) return;
+
+    if (prefersReducedMotion() || !('IntersectionObserver' in window)) {
+        items.forEach(function (el) { el.classList.add('is-visible'); });
+        return;
+    }
+
+    // Assign a stagger index within each group so cards cascade in order.
+    document.querySelectorAll('[data-reveal-group]').forEach(function (group) {
+        var groupItems = group.querySelectorAll('[data-reveal]');
+        groupItems.forEach(function (el, i) {
+            el.style.setProperty('--reveal-i', i);
+        });
+    });
+
+    var obs = new IntersectionObserver(function (entries, observer) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+    items.forEach(function (el) { obs.observe(el); });
+}
+
+/* ---------------------------------------------------------------------------
    Boot
    ------------------------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', function () {
@@ -605,4 +722,6 @@ document.addEventListener('DOMContentLoaded', function () {
     initBookCarousels();
     initIssueBookPicker();
     initReserveBookPicker();
+    initCountUp();
+    initScrollReveal();
 });

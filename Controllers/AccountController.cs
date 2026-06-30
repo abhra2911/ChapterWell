@@ -9,10 +9,12 @@ namespace Lib_Mgmt.Controllers
 {
     public class AccountController : Controller
     {
+        private readonly ModelContext _context;
         private readonly LibraryRepository _repo;
 
-        public AccountController(LibraryRepository repo)
+        public AccountController(LibraryRepository repo, ModelContext context)
         {
+            _context = context;
             _repo = repo;
         }
 
@@ -125,7 +127,7 @@ namespace Lib_Mgmt.Controllers
             ViewData["ActiveSection"] = "members";
             var model = new LibrarianMembersViewModel
             {
-                Borrowings = _repo.GetMemberBorrowings()
+                Members = _repo.GetRegisteredMembers()
             };
             return View("LibrarianPortal", model);
         }
@@ -244,6 +246,35 @@ namespace Lib_Mgmt.Controllers
             }
 
             TempData["Success"] = $"Member \"{model.FullName}\" added (code {code}).";
+            return RedirectToAction(nameof(LibrarianMembers));
+        }
+
+        // POST: /Account/DeleteMember
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteMember(int id, string name)
+        {
+            if (!TryLibrarian(out _)) return RedirectToAction(nameof(Login));
+
+            if (id <= 0)
+            {
+                TempData["FormError"] = "Could not identify the member to delete.";
+                return RedirectToAction(nameof(LibrarianMembers));
+            }
+
+            var label = string.IsNullOrEmpty(name) ? "The member" : $"\"{name}\"";
+            switch (_repo.DeleteMember(id))
+            {
+                case LibraryRepository.DeleteMemberResult.Deleted:
+                    TempData["Success"] = $"{label} has been removed.";
+                    break;
+                case LibraryRepository.DeleteMemberResult.HasActiveLoans:
+                    TempData["FormError"] = $"{label} still has active loans and can't be removed.";
+                    break;
+                default:
+                    TempData["FormError"] = "That member no longer exists.";
+                    break;
+            }
             return RedirectToAction(nameof(LibrarianMembers));
         }
 

@@ -4,6 +4,6 @@ namespace Lib_Mgmt.Models
 {
     public class LibrarianMembersViewModel
     {
-        public List<MemberBorrowingRow> Borrowings { get; set; } = new List<MemberBorrowingRow>();
+        public List<RegisteredMemberRow> Members { get; set; } = new List<RegisteredMemberRow>();
     }
 }
