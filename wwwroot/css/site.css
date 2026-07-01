@@ -136,9 +136,18 @@ body {
     }
 
     .navbar-custom .navbar-brand {
+        color: #ffffff;
         font-weight: 700;
-        letter-spacing: 0.2px;
+        margin-right: 26px;
+        padding-left: 15px 0;
+        font-size: 1.06rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
+        .navbar-custom .navbar-brand .bi {
+            color: var(--brand-secondary-2);
+        }
 
     .navbar-custom .nav-link:hover {
         color: var(--brand-secondary-2);
