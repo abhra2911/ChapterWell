@@ -80,24 +80,26 @@
                             }
                         </td>
                         <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-outline-primary btn-icon"
-                                    title="View" data-bs-toggle="modal" data-bs-target="#memberDetailModal"
-                                    data-name="@r.FullName" data-code="@r.MemberCode"
-                                    data-email="@r.Email" data-phone="@r.Phone"
-                                    data-joined="@r.JoinedDate.ToString("dd MMM yyyy")"
-                                    data-loans="@r.ActiveLoans"
-                                    data-fines="&#8377;@r.UnpaidFines"
-                                    data-status="@(r.IsActive ? "Active" : "Inactive")">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <form asp-controller="Account" asp-action="DeleteMember" method="post"
-                                  class="d-inline" onsubmit="return confirm('Delete @r.FullName? This cannot be undone.');">
-                                <input type="hidden" name="id" value="@r.Id" />
-                                <input type="hidden" name="name" value="@r.FullName" />
-                                <button type="submit" class="btn btn-sm btn-outline-danger btn-icon" title="Delete member">
-                                    <i class="bi bi-x-lg"></i>
+                            <div class="table-actions">
+                                <button type="button" class="btn btn-sm btn-outline-primary btn-icon"
+                                        title="View" data-bs-toggle="modal" data-bs-target="#memberDetailModal"
+                                        data-name="@r.FullName" data-code="@r.MemberCode"
+                                        data-email="@r.Email" data-phone="@r.Phone"
+                                        data-joined="@r.JoinedDate.ToString("dd MMM yyyy")"
+                                        data-loans="@r.ActiveLoans"
+                                        data-fines="&#8377;@r.UnpaidFines"
+                                        data-status="@(r.IsActive ? "Active" : "Inactive")">
+                                    <i class="bi bi-eye"></i>
                                 </button>
-                            </form>
+                                <form asp-controller="Account" asp-action="DeleteMember" method="post"
+                                      class="d-inline" onsubmit="return confirm('Delete @r.FullName? This cannot be undone.');">
+                                    <input type="hidden" name="id" value="@r.Id" />
+                                    <input type="hidden" name="name" value="@r.FullName" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger btn-icon" title="Delete member">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 }

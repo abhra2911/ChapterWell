@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Lib_Mgmt.Data.Entities;
 using Lib_Mgmt.Models;
 
 namespace Lib_Mgmt.Data

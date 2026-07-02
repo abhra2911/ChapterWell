@@ -6,32 +6,39 @@
 
 <div class="row" data-reveal-group>
     <div class="col-md-4 col-sm-6" data-reveal>
-        <div class="stat-card">
-            <div class="stat-icon"><i class="bi bi-journal-bookmark"></i></div>
-            <div class="stat-body">
-                <div class="stat-label">Currently Borrowed</div>
-                <div class="stat-value">@Model.CurrentlyBorrowed</div>
+         <a asp-controller="Account" asp-action="MemberLoans">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-journal-bookmark"></i></div>
+                <div class="stat-body">
+                    <div class="stat-label">Currently Borrowed</div>
+                    <div class="stat-value">@Model.CurrentlyBorrowed</div>
+                </div>
             </div>
-        </div>
+         </a>
     </div>
     <div class="col-md-4 col-sm-6" data-reveal>
-        <div class="stat-card danger">
-            <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
-            <div class="stat-body">
-                <div class="stat-label">Overdue</div>
-                <div class="stat-value">@Model.OverdueCount</div>
+        <a asp-controller="Account" asp-action="MemberLoans">
+            <div class="stat-card danger">
+                <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+                <div class="stat-body">
+                    <div class="stat-label">Overdue</div>
+                    <div class="stat-value">@Model.OverdueCount</div>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-4 col-sm-6" data-reveal>
-        <div class="stat-card warning">
-            <div class="stat-icon"><i class="bi bi-cash-coin"></i></div>
-            <div class="stat-body">
-                <div class="stat-label">Fine Due</div>
-                <div class="stat-value">&#8377;@Model.FineDue</div>
+        <a asp-controller="Account" asp-action="MemberLoans">
+            <div class="stat-card warning">
+                <div class="stat-icon"><i class="bi bi-cash-coin"></i></div>
+                <div class="stat-body">
+                    <div class="stat-label">Fine Due</div>
+                    <div class="stat-value">&#8377;@Model.FineDue</div>
+                </div>
             </div>
+        </a>
         </div>
-    </div>
+
 </div>
 
 <div class="carousel-section">

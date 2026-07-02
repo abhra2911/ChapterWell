@@ -630,6 +630,21 @@ body {
     color: var(--brand-danger);
 }
 
+.stat-card-link {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    text-decoration: none;
+}
+
+    .stat-card-link:visited {
+        color: inherit;
+    }
+
+a:has(.stat-card) { /* avoid the underline caused by anchor tag in stat-cards*/
+    text-decoration: none;
+}
+
 /* ============================================================================
    Info cards (account page)
    ========================================================================== */
@@ -781,6 +796,17 @@ body {
     justify-content: center;
     border-radius: 8px;
     line-height: 1;
+}
+.table-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.data-table-wrap .table > thead > tr > th:last-child,
+.data-table-wrap .table > tbody > tr > td:last-child {
+    white-space: nowrap;
 }
 
 /* ============================================================================

@@ -7,71 +7,85 @@
 <!-- Stat cards row 1 -->
 <div class="row" data-reveal-group>
     <div class="col-md-3 col-sm-6" data-reveal>
-        <div class="stat-card">
-            <div class="stat-icon"><i class="bi bi-journals"></i></div>
-            <div class="stat-body">
-                <div class="stat-label">Total Titles</div>
-                <div class="stat-value">@Model.TotalTitles</div>
+        <a asp-controller="Account" asp-action="LibrarianBooks">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-journals"></i></div>
+                <div class="stat-body">
+                    <div class="stat-label">Total Titles</div>
+                    <div class="stat-value">@Model.TotalTitles</div>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3 col-sm-6" data-reveal>
-        <div class="stat-card success">
-            <div class="stat-icon"><i class="bi bi-people"></i></div>
-            <div class="stat-body">
-                <div class="stat-label">Total Members</div>
-                <div class="stat-value">@Model.TotalMembers</div>
+        <a asp-controller="Account" asp-action="LibrarianMembers">
+            <div class="stat-card success">
+                <div class="stat-icon"><i class="bi bi-people"></i></div>
+                <div class="stat-body">
+                    <div class="stat-label">Total Members</div>
+                    <div class="stat-value">@Model.TotalMembers</div>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3 col-sm-6" data-reveal>
-        <div class="stat-card warning">
-            <div class="stat-icon"><i class="bi bi-journal-arrow-up"></i></div>
-            <div class="stat-body">
-                <div class="stat-label">Books Borrowed</div>
-                <div class="stat-value">@Model.BooksBorrowed</div>
+        <a asp-controller="Account" asp-action="LibrarianBooks">
+            <div class="stat-card warning">
+                <div class="stat-icon"><i class="bi bi-journal-arrow-up"></i></div>
+                <div class="stat-body">
+                    <div class="stat-label">Books Borrowed</div>
+                    <div class="stat-value">@Model.BooksBorrowed</div>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3 col-sm-6" data-reveal>
-        <div class="stat-card danger">
-            <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
-            <div class="stat-body">
-                <div class="stat-label">Overdue</div>
-                <div class="stat-value">@Model.OverdueCount</div>
+        <a asp-controller="Account" asp-action="LibrarianBorrowings">
+            <div class="stat-card danger">
+                <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+                <div class="stat-body">
+                    <div class="stat-label">Overdue</div>
+                    <div class="stat-value">@Model.OverdueCount</div>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 
 <!-- Stat cards row 2 -->
 <div class="row mt-2" data-reveal-group>
     <div class="col-md-4 col-sm-6" data-reveal>
-        <div class="stat-card">
-            <div class="stat-icon"><i class="bi bi-stack"></i></div>
-            <div class="stat-body">
-                <div class="stat-label">Copies Available</div>
-                <div class="stat-value">@Model.CopiesAvailable</div>
+        <a asp-controller="Account" asp-action="LibrarianBooks">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-stack"></i></div>
+                <div class="stat-body">
+                    <div class="stat-label">Copies Available</div>
+                    <div class="stat-value">@Model.CopiesAvailable</div>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-4 col-sm-6" data-reveal>
-        <div class="stat-card warning">
-            <div class="stat-icon"><i class="bi bi-cash-coin"></i></div>
-            <div class="stat-body">
-                <div class="stat-label">Total Fines Due</div>
-                <div class="stat-value">&#8377;@Model.TotalFinesDue</div>
+        <a asp-controller="Account" asp-action="LibrarianBorrowings">
+            <div class="stat-card warning">
+                <div class="stat-icon"><i class="bi bi-cash-coin"></i></div>
+                <div class="stat-body">
+                    <div class="stat-label">Total Fines Due</div>
+                    <div class="stat-value">&#8377;@Model.TotalFinesDue</div>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-4 col-sm-6" data-reveal>
-        <div class="stat-card success">
-            <div class="stat-icon"><i class="bi bi-person-plus"></i></div>
-            <div class="stat-body">
-                <div class="stat-label">New Members This Month</div>
-                <div class="stat-value">@Model.NewMembersThisMonth</div>
+        <a asp-controller="Account" asp-action="LibrarianMembers">
+            <div class="stat-card success">
+                <div class="stat-icon"><i class="bi bi-person-plus"></i></div>
+                <div class="stat-body">
+                    <div class="stat-label">New Members This Month</div>
+                    <div class="stat-value">@Model.NewMembersThisMonth</div>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 
