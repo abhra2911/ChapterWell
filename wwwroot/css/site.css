@@ -809,6 +809,39 @@ a:has(.stat-card) { /* avoid the underline caused by anchor tag in stat-cards*/
     white-space: nowrap;
 }
 
+.data-table-wrap-shelfview .table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+    .data-table-wrap-shelfview .table > thead > tr > th,
+    .data-table-wrap-shelfview .table > tbody > tr > td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+        .data-table-wrap-shelfview .table > thead > tr > th:nth-child(1),
+        .data-table-wrap-shelfview .table > tbody > tr > td:nth-child(1) {
+            width: 32%;
+        }
+
+        .data-table-wrap-shelfview .table > thead > tr > th:nth-child(2),
+        .data-table-wrap-shelfview .table > tbody > tr > td:nth-child(2) {
+            width: 34%;
+        }
+
+        .data-table-wrap-shelfview .table > thead > tr > th:nth-child(3),
+        .data-table-wrap-shelfview .table > tbody > tr > td:nth-child(3) {
+            width: 18%;
+        }
+
+        .data-table-wrap-shelfview .table > thead > tr > th:nth-child(4),
+        .data-table-wrap-shelfview .table > tbody > tr > td:nth-child(4) {
+            width: 16%;
+            white-space: nowrap;
+        }
+
 /* ============================================================================
    Badges — genre + availability pills
    ========================================================================== */
@@ -880,6 +913,18 @@ a:has(.stat-card) { /* avoid the underline caused by anchor tag in stat-cards*/
         color: var(--brand-danger);
         background: var(--g-rose-bg);
     }
+
+.shelf-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    background: var(--bg-subtle, rgba(127, 127, 127, 0.12));
+}
 
 /* ============================================================================
    Toolbar (search + filters) used on the catalog pages

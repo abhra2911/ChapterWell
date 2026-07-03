@@ -7,13 +7,25 @@
                         .Distinct()
                         .OrderBy(g => g)
                         .ToList();
+    var byShelf  = books.GroupBy(b => b.ShelfNumber).OrderBy(g => g.Key).ToList();
 }
 
 <h2>Books</h2>
 <p class="subtitle">Browse the catalog &mdash; filter, search, and tap any book for details</p>
 <hr />
 
-<div data-filter-root>
+<div class="d-flex justify-content-end mb-3">
+    <div class="btn-group btn-group-sm" role="group" aria-label="Books view toggle" data-view-toggle>
+        <button type="button" class="btn btn-outline-primary active" data-view-btn="list">
+            <i class="bi bi-grid me-1"></i>Browse
+        </button>
+        <button type="button" class="btn btn-outline-primary" data-view-btn="shelf">
+            <i class="bi bi-bookshelf me-1"></i>Shelf View
+        </button>
+    </div>
+</div>
+
+<div data-filter-root data-view-pane="list">
 
     <div class="toolbar">
         <div class="row g-3 align-items-center">
@@ -76,6 +88,7 @@
                         data-isbn="@b.Isbn" data-publisher="@b.Publisher"
                         data-year="@(b.PublishedYear?.ToString() ?? "—")"
                         data-copies="@b.AvailableCopies of @b.Quantity copies"
+                        data-shelf="Shelf @b.ShelfNumber"
                         data-cover="@cover">
                     <div class="cover-wrap">
                         <img class="cover" src="@cover" alt="Cover of @b.Title" />
@@ -86,6 +99,7 @@
                         <div class="author">@b.Author</div>
                         <div class="meta-row">
                             <span class="genre-badge @Lib_Mgmt.Models.GenreBadge.CssClass(b.Genre)">@b.Genre</span>
+                            <span class="shelf-pill">Shelf @b.ShelfNumber</span>
                             @if (b.Available)
                             {
                                 <span class="avail-pill yes">Available</span>
@@ -148,6 +162,10 @@
                                 <div class="detail-label">Publisher</div>
                                 <div class="detail-value" data-field="publisher"></div>
                             </div>
+                            <div>
+                                <div class="detail-label">Shelf</div>
+                                <div class="detail-value" data-field="shelf"></div>
+                            </div>
                             <div style="grid-column: 1 / -1;">
                                 <div class="detail-label">Availability</div>
                                 <div class="detail-value" data-field="copies"></div>
@@ -162,3 +180,67 @@
         </div>
     </div>
 </div>
+
+<!--   Shelf View — books grouped by physical shelf number   -->
+<div data-view-pane="shelf" style="display:none">
+    @if (byShelf.Count == 0)
+    {
+        <div class="empty-state mt-3">
+            <i class="bi bi-bookshelf"></i>
+            No books in the catalog yet.
+        </div>
+    }
+    else
+    {
+        @foreach (var shelf in byShelf)
+        {
+            <h4 class="portal-section-title mt-4">
+                <i class="bi bi-bookshelf"></i>Shelf @shelf.Key
+                <span class="text-secondary small fw-normal">(@shelf.Count() @(shelf.Count() == 1 ? "title" : "titles"))</span>
+            </h4>
+            <div class="book-grid mb-3">
+                @foreach (var b in shelf.OrderBy(x => x.Title))
+                {
+                    <div class="book-card">
+                        <div class="cover-wrap">
+                            <img class="cover" src="/images/bookcovers/@(b.Isbn).jpg" alt="Cover of @b.Title" />
+                        </div>
+                        <div class="body">
+                            <div class="title">@b.Title</div>
+                            <div class="author">@b.Author</div>
+                            <div class="meta-row">
+                                <span class="genre-badge @Lib_Mgmt.Models.GenreBadge.CssClass(b.Genre)">@b.Genre</span>
+                                @if (b.Available)
+                                {
+                                    <span class="avail-pill yes">Available</span>
+                                }
+                                else
+                                {
+                                    <span class="avail-pill no">Out</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var group = document.querySelector('[data-view-toggle]');
+        if (!group) return;
+        var buttons = group.querySelectorAll('[data-view-btn]');
+        var panes = document.querySelectorAll('[data-view-pane]');
+        buttons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var target = btn.getAttribute('data-view-btn');
+                buttons.forEach(function (b) { b.classList.toggle('active', b === btn); });
+                panes.forEach(function (p) {
+                    p.style.display = (p.getAttribute('data-view-pane') === target) ? '' : 'none';
+                });
+            });
+        });
+    });
+</script>

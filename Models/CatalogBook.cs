@@ -20,6 +20,7 @@ namespace Lib_Mgmt.Models
 
         public int Quantity { get; set; }          // total copies owned
         public int AvailableCopies { get; set; }    // copies on the shelf right now
+        public int ShelfNumber { get; set; }        // physical shelf, assigned randomly on AddBook
 
         // Path under wwwroot, e.g. "/images/covers/9780132350884.jpg".
         // Leave empty to fall back to placeholder-cover.svg in the view.

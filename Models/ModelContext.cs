@@ -144,6 +144,8 @@ namespace Lib_Mgmt.Models
                     .HasMaxLength(200);
 
                 entity.Property(e => e.TotalCopies).HasColumnName("TOTAL_COPIES");
+
+                entity.Property(e => e.ShelfNumber).HasColumnName("SHELF_NUMBER");
             });
 
             modelBuilder.Entity<LibmgmtBorrowings>(entity =>

@@ -52,7 +52,7 @@
                         <td>
                             @if (r.ActiveLoans > 0)
                             {
-                                <span class="badge bg-info text-dark">@r.ActiveLoans</span>
+                                <span class="text-muted">@r.ActiveLoans</span>
                             }
                             else
                             {
@@ -88,7 +88,8 @@
                                         data-joined="@r.JoinedDate.ToString("dd MMM yyyy")"
                                         data-loans="@r.ActiveLoans"
                                         data-fines="&#8377;@r.UnpaidFines"
-                                        data-status="@(r.IsActive ? "Active" : "Inactive")">
+                                        data-status="@(r.IsActive ? "Active" : "Inactive")"
+                                        data-address="@r.Address">
                                     <i class="bi bi-eye"></i>
                                 </button>
                                 <form asp-controller="Account" asp-action="DeleteMember" method="post"
@@ -141,6 +142,10 @@
                     <div style="grid-column: 1 / -1;">
                         <div class="detail-label">Email</div>
                         <div class="detail-value" data-field="email"></div>
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <div class="detail-label">Address</div>
+                        <div class="detail-value" data-field="address"></div>
                     </div>
                     <div>
                         <div class="detail-label">Phone</div>
@@ -224,6 +229,11 @@
                             <input type="password" class="form-control" id="mem-confirm" data-label="Confirm Password"
                                    name="ConfirmPassword" required minlength="6" maxlength="100"
                                    autocomplete="new-password" />
+                        </div>
+                        <div class="col-12">
+                            <label for="mem-address" class="form-label">Address</label>
+                            <textarea class="form-control" id="mem-address" data-label="Address"
+                                      name="Address" maxlength="250" rows="2" placeholder="optional"></textarea>
                         </div>
                         <div class="col-12">
                             <small class="text-muted">

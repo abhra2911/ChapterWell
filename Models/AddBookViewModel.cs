@@ -32,5 +32,9 @@ namespace Lib_Mgmt.Models
 
         [StringLength(150)]
         public string Publisher { get; set; }
+
+        [Required(ErrorMessage = "Please Specify Shelf Number")]
+        //[Range(1, 100, ErrorMessage = "Pick a shelf between 1-100 only")]   what if number of shelves in library expand later?
+        public int ShelfNumber { get; set; }
     }
 }

@@ -32,5 +32,10 @@ namespace Lib_Mgmt.Models
         [Range(0, 9999, ErrorMessage = "Available copies must be between 0 and 9999.")]
         [Display(Name = "Available Copies")]
         public int AvailableCopies { get; set; }
+
+        [Required(ErrorMessage = "Shelf number is required.")]
+        [Range(1, 100, ErrorMessage = "Shelf must be between 1 and 100.")]
+        [Display(Name = "Shelf")]
+        public int ShelfNumber { get; set; }
     }
 }

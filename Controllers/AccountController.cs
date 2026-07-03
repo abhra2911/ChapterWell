@@ -116,6 +116,8 @@ namespace Lib_Mgmt.Controllers
                 Books = _repo.GetCatalog(),
                 Damaged = _repo.GetDamagedBooks()
             };
+            ViewBag.AuthorSuggestions = _repo.GetDistinctAuthorNames();//////////////////////////////////////////////////
+
             return View("LibrarianPortal", model);
         }
 

@@ -33,5 +33,8 @@ namespace Lib_Mgmt.Models
         [Compare(nameof(Password), ErrorMessage = "Passwords do not match.")]
         [Display(Name = "Confirm Password")]
         public string ConfirmPassword { get; set; }
+
+        [StringLength(500)]
+        public string Address { get; set; }
     }
 }

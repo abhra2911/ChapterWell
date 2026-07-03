@@ -22,6 +22,7 @@ namespace Lib_Mgmt.Models
         public string PasswordHash { get; set; }
         public DateTime JoinedDate { get; set; }
         public bool IsActive { get; set; }
+        public string Address { get; set; }
 
         public ICollection<LibmgmtBorrowings> LibmgmtBorrowings { get; set; }
         public ICollection<LibmgmtFines> LibmgmtFines { get; set; }

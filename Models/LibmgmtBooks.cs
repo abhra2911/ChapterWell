@@ -23,6 +23,7 @@ namespace Lib_Mgmt.Models
         public int TotalCopies { get; set; }
         public int AvailableCopies { get; set; }
         public DateTime AddedDate { get; set; }
+        public int ShelfNumber { get; set; }
 
         public ICollection<LibmgmtBookdamages> LibmgmtBookdamages { get; set; }
         public ICollection<LibmgmtBorrowings> LibmgmtBorrowings { get; set; }

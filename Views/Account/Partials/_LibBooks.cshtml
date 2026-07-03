@@ -5,6 +5,7 @@
     var books     = Model?.Books   ?? new List<Lib_Mgmt.Models.CatalogBook>();
     var damaged   = Model?.Damaged ?? new List<Lib_Mgmt.Models.DamagedBookEntry>();
     var damagedTotal = Model?.DamagedTotal ?? 0;
+    var byShelf   = books.GroupBy(b => b.ShelfNumber).OrderBy(g => g.Key).ToList();
 }
 
 <h2>Books</h2>
@@ -16,10 +17,20 @@
             data-bs-toggle="modal" data-bs-target="#addBookModal">
         <i class="bi bi-plus-lg me-1"></i>Add Book
     </button>
-    <span class="result-count" data-filter-count>@books.Count results</span>
+    <div class="d-flex align-items-center gap-3">
+        <div class="btn-group btn-group-sm" role="group" aria-label="Books view toggle" data-view-toggle>
+            <button type="button" class="btn btn-outline-primary active" data-view-btn="list">
+                <i class="bi bi-list-ul me-1"></i>List
+            </button>
+            <button type="button" class="btn btn-outline-primary" data-view-btn="shelf">
+                <i class="bi bi-grid-3x3-gap me-1"></i>Shelf View
+            </button>
+        </div>
+        <span class="result-count" data-filter-count>@books.Count results</span>
+    </div>
 </div>
 
-<div data-filter-root>
+<div data-filter-root data-view-pane="list">
     <div class="toolbar">
         <div class="search-field">
             <i class="bi bi-search"></i>
@@ -35,6 +46,7 @@
                     <th>Title</th>
                     <th>Author</th>
                     <th>Genre</th>
+                    <th>Shelf</th>
                     <th>Availability</th>
                     <th class="text-end">Actions</th>
                 </tr>
@@ -48,6 +60,7 @@
                         <td class="fw-semibold">@b.Title</td>
                         <td>@b.Author</td>
                         <td><span class="genre-badge @Lib_Mgmt.Models.GenreBadge.CssClass(b.Genre)">@b.Genre</span></td>
+                        <td><span class="shelf-pill">@b.ShelfNumber</span></td>
                         <td>
                             @if (b.Available)
                             {
@@ -64,7 +77,7 @@
                                         title="Edit" data-bs-toggle="modal" data-bs-target="#editBookModal"
                                         data-id="@b.Id" data-title="@b.Title" data-author="@b.Author"
                                         data-isbn="@b.Isbn" data-genre="@b.Genre" data-quantity="@b.Quantity"
-                                        data-availablecopies="@b.AvailableCopies">
+                                        data-availablecopies="@b.AvailableCopies" data-shelfnumber="@b.ShelfNumber">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-danger btn-icon"
@@ -77,7 +90,7 @@
                     </tr>
                 }
                 <tr data-filter-empty style="display:none">
-                    <td colspan="5">
+                    <td colspan="6">
                         <div class="empty-state border-0">
                             <i class="bi bi-search"></i>
                             No books match your search.
@@ -87,6 +100,59 @@
             </tbody>
         </table>
     </div>
+</div>
+
+<!--   Shelf View — books grouped by physical shelf number   -->
+<div data-view-pane="shelf" style="display:none">
+    @if (byShelf.Count == 0)
+    {
+        <div class="empty-state border-0">
+            <i class="bi bi-grid-3x3-gap"></i>
+            No books in the catalog yet.
+        </div>
+    }
+    else
+    {
+        @foreach (var shelf in byShelf)
+        {
+            <h4 class="portal-section-title mt-4">
+                <i class="bi bi-bookshelf"></i>Shelf @shelf.Key
+                <span class="text-secondary small fw-normal">(@shelf.Count() @(shelf.Count() == 1 ? "title" : "titles"))</span>
+            </h4>
+            <div class="data-table-wrap-shelfview mb-3">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Genre</th>
+                            <th>Availability</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var b in shelf.OrderBy(x => x.Title))
+                        {
+                            <tr>
+                                <td class="fw-semibold">@b.Title</td>
+                                <td>@b.Author</td>
+                                <td><span class="genre-badge @Lib_Mgmt.Models.GenreBadge.CssClass(b.Genre)">@b.Genre</span></td>
+                                <td>
+                                    @if (b.Available)
+                                    {
+                                        <span class="avail-pill yes">@b.AvailableCopies of @b.Quantity</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="avail-pill no">0 of @b.Quantity</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
 </div>
 
 
@@ -140,6 +206,16 @@
 </div>
 
 
+
+<!-- Author names autocomplete -->
+<datalist id="author-suggestions">
+    @foreach (var author in (List<string>)ViewBag.AuthorSuggestions)
+    {
+        <option value="@author"></option>
+    }
+</datalist>
+
+
 <!--   Add Book modal               -->
 <div class="modal fade" id="addBookModal" tabindex="-1"
      aria-labelledby="addBookModalLabel" aria-hidden="true">
@@ -173,7 +249,7 @@
                         <div class="col-md-6">
                             <label for="book-author" class="form-label">Author</label>
                             <input type="text" class="form-control" id="book-author" data-label="Author"
-                                   name="Author" required maxlength="150" />
+                                   name="Author" required maxlength="150" autocomplete="off" list="author-suggestions"/>
                         </div>
                         <div class="col-md-6">
                             <label for="book-genre" class="form-label">Genre</label>
@@ -184,6 +260,11 @@
                             <label for="book-quantity" class="form-label">Quantity</label>
                             <input type="number" class="form-control" id="book-quantity" data-label="Quantity"
                                    name="Quantity" required min="0" max="9999" value="1" />
+                        </div>
+                        <div class="col-md-3">
+                            <label for="book-shelf" class="form-label">Shelf No.</label>
+                            <input type="number" class="form-control" id="book-shelf" data-label="Shelf Number"
+                                   name="ShelfNumber" required min="1" placeholder="e.g. 12" />
                         </div>
                         <div class="col-md-4">
                             <label for="book-year" class="form-label">Year</label>
@@ -257,6 +338,11 @@
                             <label for="edit-book-available" class="form-label">Available</label>
                             <input type="number" class="form-control" id="edit-book-available" data-label="Available Copies"
                                    data-field="availablecopies" name="AvailableCopies" required min="0" max="9999" />
+                        </div>
+                        <div class="col-md-3">
+                            <label for="edit-book-shelf" class="form-label">Shelf</label>
+                            <input type="number" class="form-control" id="edit-book-shelf" data-label="Shelf"
+                                   data-field="shelfnumber" name="ShelfNumber" required min="1" max="100" />
                         </div>
                     </div>
                 </div>
@@ -370,3 +456,21 @@
         });
     </script>
 }
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var group = document.querySelector('[data-view-toggle]');
+        if (!group) return;
+        var buttons = group.querySelectorAll('[data-view-btn]');
+        var panes = document.querySelectorAll('[data-view-pane]');
+        buttons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var target = btn.getAttribute('data-view-btn');
+                buttons.forEach(function (b) { b.classList.toggle('active', b === btn); });
+                panes.forEach(function (p) {
+                    p.style.display = (p.getAttribute('data-view-pane') === target) ? '' : 'none';
+                });
+            });
+        });
+    });
+</script>

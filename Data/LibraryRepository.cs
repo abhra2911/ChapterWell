@@ -238,7 +238,8 @@ namespace Lib_Mgmt.Data
                     Publisher = b.Publisher,
                     PublishedYear = b.PublishYear,
                     Quantity = b.TotalCopies,
-                    AvailableCopies = b.AvailableCopies
+                    AvailableCopies = b.AvailableCopies,
+                    ShelfNumber = b.ShelfNumber
                 })
                 .ToList();
         }
@@ -451,6 +452,7 @@ namespace Lib_Mgmt.Data
                 MemberCode = m.MemberCode ?? "",
                 FullName = m.FullName ?? "",
                 Email = m.Email ?? "",
+                Address = m.Address ?? "",
                 Phone = m.Phone ?? "",
                 JoinedDate = m.JoinedDate,
                 IsActive = m.IsActive,
@@ -917,6 +919,20 @@ namespace Lib_Mgmt.Data
         private decimal NextWishlistId() => (_context.LibmgmtWishlist.Select(x => (decimal?)x.WishlistId).Max() ?? 0m) + 1m;
         private long NextReservationId() => (_context.LibmgmtReservations.Select(x => (long?)x.ReservationId).Max() ?? 0L) + 1L;
 
+        public List<string> GetDistinctAuthorNames()
+        {
+            return _context.LibmgmtBooks
+                .Where(b => !string.IsNullOrWhiteSpace(b.Author))
+                .Select(b => b.Author)
+                .AsEnumerable()
+                .SelectMany(a => a.Split(new[] { ',', '&' }, StringSplitOptions.RemoveEmptyEntries))
+                .Select(a => a.Trim())
+                .Where(a => !string.IsNullOrWhiteSpace(a))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(a => a)
+                .ToList();
+        }
+
         public string AddBook(AddBookViewModel m)
         {
             //using (var tx = _db.Database.BeginTransaction())
@@ -938,7 +954,9 @@ namespace Lib_Mgmt.Data
                         PublishYear = m.PublishedYear,
                         TotalCopies = m.Quantity,
                         AvailableCopies = m.Quantity,
-                        AddedDate = DateTime.Now
+                        AddedDate = DateTime.Now,
+
+                        ShelfNumber = m.ShelfNumber
                     });
                     //_db.SaveChanges();
                     _context.SaveChanges();
@@ -1001,7 +1019,9 @@ namespace Lib_Mgmt.Data
                         Email = email,
                         Phone = string.IsNullOrWhiteSpace(m.Phone) ? null : m.Phone.Trim(),
                         IsActive = true,
-                        JoinedDate = DateTime.Now
+                        JoinedDate = DateTime.Now,
+                        Address = string.IsNullOrWhiteSpace(m.Address) ? null : m.Address.Trim()
+
                     });
 
                     //_db.SaveChanges();
@@ -1094,6 +1114,7 @@ namespace Lib_Mgmt.Data
             // If the form supplies AvailableCopies, use it; clamp so it
             // never exceeds TotalCopies (chk_books_avail_le_tot constraint).
             book.AvailableCopies = Math.Min(m.AvailableCopies, m.Quantity);
+            book.ShelfNumber = m.ShelfNumber;
 
             //_db.SaveChanges();
             _context.SaveChanges();

@@ -9,6 +9,7 @@ namespace Lib_Mgmt.Models
         public string MemberCode { get; set; } = "";
         public string FullName { get; set; } = "";
         public string Email { get; set; } = "";
+        public string Address { get; set; }
         public string Phone { get; set; } = "";
         public DateTime JoinedDate { get; set; }
         public bool IsActive { get; set; }
