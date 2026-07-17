@@ -1,6 +1,8 @@
 using Lib_Mgmt.Data;
 using Lib_Mgmt.Models;
 using Microsoft.EntityFrameworkCore;
+using Lib_Mgmt.Reporting.Exporters;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +22,7 @@ builder.Services.AddDbContext<ModelContext>(options =>
 
 // One repository instance per request.
 builder.Services.AddScoped<LibraryRepository>();
+builder.Services.AddScoped<IReportExporter, CsvReportExporter>();
 
 builder.Services.AddControllersWithViews();
 
@@ -37,9 +40,11 @@ else
 }
 
 app.UseHttpsRedirection();
+
 app.UseStaticFiles();
 
 app.UseRouting();
+
 
 // Must come before MapControllerRoute so controllers can read HttpContext.Session.
 app.UseSession();

@@ -4,18 +4,19 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Lib_Mgmt.Data;
 using Lib_Mgmt.Models;
+using Lib_Mgmt.Reporting.Exporters;
 
 namespace Lib_Mgmt.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly ModelContext _context;
         private readonly LibraryRepository _repo;
+        private readonly IEnumerable<IReportExporter> _exporters;
 
-        public AccountController(LibraryRepository repo, ModelContext context)
+        public AccountController(LibraryRepository repo, IEnumerable<IReportExporter> exporters)
         {
-            _context = context;
             _repo = repo;
+            _exporters = exporters;
         }
 
         // ---------------------------------------------------------------
@@ -147,6 +148,47 @@ namespace Lib_Mgmt.Controllers
                 PendingReservations = _repo.GetPendingReservations()
             };
             return View("LibrarianPortal", model);
+        }
+
+        // GET: /Account/LibrarianReports
+        public IActionResult LibrarianReports()
+        {
+            if (!TryLibrarian(out _)) return RedirectToAction(nameof(Login));
+
+            ViewData["ActiveSection"] = "reports";
+            return View("LibrarianPortal");
+        }
+
+        // GET: /Account/ExportReport?report=shelf-catalogue&format=csv&range=month
+        public IActionResult ExportReport(string report, string format, string range)
+        {
+            if (!TryLibrarian(out _)) return RedirectToAction(nameof(Login));
+
+            var since = string.Equals(range, "year", StringComparison.OrdinalIgnoreCase)
+                ? DateTime.Now.AddYears(-1)
+                : DateTime.Now.AddMonths(-1);
+
+            List<string> headers;
+            List<List<object>> rows;
+
+            switch (report)
+            {
+                case "shelf-catalogue":
+                    (headers, rows) = _repo.GetShelfCatalogueReport(since);
+                    break;
+                case "current-borrowings":
+                    (headers, rows) = _repo.GetCurrentBorrowingsReport(since);
+                    break;
+                default:
+                    return NotFound();
+            }
+
+            var exporter = _exporters.FirstOrDefault(e => e.FormatName.Equals(format, StringComparison.OrdinalIgnoreCase))
+                           ?? _exporters.First();
+
+            var bytes = exporter.Export(headers, rows);
+            var fileName = $"{report}-{DateTime.Now:yyyyMMdd}.{exporter.FileExtension}";
+            return File(bytes, exporter.ContentType, fileName);
         }
 
         // ---------------------------------------------------------------

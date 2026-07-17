@@ -17,6 +17,8 @@
            class="@(active == "members" ? "active" : "")">Members</a>
         <a asp-controller="Account" asp-action="LibrarianAccount"
            class="@(active == "account" ? "active" : "")">Account</a>
+        <a asp-controller="Account" asp-action="LibrarianReports"
+           class="@(active == "reports" ? "active" : "")">Reports</a>
         <span class="spacer"></span>
         <span class="dark-btn-wrap">
             <button type="button" class="dark-mode-btn" onclick="toggleTheme()">

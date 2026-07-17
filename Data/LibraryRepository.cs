@@ -486,6 +486,53 @@ namespace Lib_Mgmt.Data
         }
 
         // =====================================================================
+        // Reports (CSV export)
+        // =====================================================================
+
+        public (List<string> Headers, List<List<object>> Rows) GetShelfCatalogueReport(DateTime since)
+        {
+            var headers = new List<string> { "Shelf Number", "Title", "Author", "ISBN", "Genre", "Added Date" };
+
+            var rows = _context.LibmgmtBooks.AsNoTracking()
+                .Where(b => b.AddedDate >= since)
+                .OrderBy(b => b.ShelfNumber).ThenBy(b => b.Title)
+                .Select(b => new List<object>
+                {
+            b.ShelfNumber,
+            b.Title,
+            b.Author,
+            b.Isbn,
+            b.Genre,
+            b.AddedDate.ToString("yyyy-MM-dd")
+                })
+                .ToList();
+
+            return (headers, rows);
+        }
+
+        public (List<string> Headers, List<List<object>> Rows) GetCurrentBorrowingsReport(DateTime since)
+        {
+            var headers = new List<string> { "Member Name", "Member Code", "Book Title", "ISBN", "Borrowed On", "Due Date" };
+
+            var rows = (from br in _context.LibmgmtBorrowings.AsNoTracking()
+                        join mem in _context.LibmgmtMembers.AsNoTracking() on br.MemberId equals mem.MemberId
+                        join bk in _context.LibmgmtBooks.AsNoTracking() on br.BookId equals bk.BookId
+                        where br.Status == "ACTIVE" && br.IssueDate >= since
+                        orderby br.DueDate
+                        select new List<object>
+                {
+                    mem.FullName,
+                    mem.MemberCode,
+                    bk.Title,
+                    bk.Isbn,
+                    br.IssueDate.ToString("yyyy-MM-dd"),
+                    br.DueDate.ToString("yyyy-MM-dd")
+                }).ToList();
+
+            return (headers, rows);
+        }
+
+        // =====================================================================
         // Member dashboard + tabs
         // =====================================================================
 

@@ -22,6 +22,9 @@
         case "borrowings":
             <partial name="Partials/_LibBorrowings" model="@(Model as LibrarianBorrowingsViewModel)" />
             break;
+        case "reports":
+            <partial name="Partials/_LibReports" />
+            break;
         default:
             <partial name="Partials/_LibDashboard" model="@(Model as LibrarianDashboardViewModel)" />
             break;
