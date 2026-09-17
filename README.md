@@ -1,6 +1,6 @@
 # ChapterWell
 
-A library management system built with ASP.NET Core MVC and Entity Framework Core. Internally referred to as "Library Management System" in documentation; the in-app frontend brand is "The Central Library".
+A library management system built with ASP.NET Core MVC and Entity Framework Core.
 
 ## Overview
 
@@ -14,7 +14,6 @@ ChapterWell is a dual-portal web application for running a library: librarians m
 - Bootstrap 5 and Bootstrap Icons
 - Chart.js for dashboard visualizations
 - BCrypt.Net-Next for password hashing
-- CSS variable based dark/light theming
 
 ## Features
 
@@ -67,19 +66,3 @@ Set the connection string in `appsettings.json`:
 ```
 
 A schema matching the `ModelContext` entities must exist on the target server before running the application; this repository does not include a schema or seed script.
-
-## Running locally
-
-Requirements: .NET 10 SDK and a reachable SQL Server instance.
-
-```bash
-dotnet restore
-dotnet build
-dotnet run
-```
-
-The app listens on the URLs configured in `Properties/launchSettings.json`.
-
-## License
-
-No license specified.
